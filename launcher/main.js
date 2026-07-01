@@ -317,17 +317,19 @@ if (!lock) {
 					watcher = chokidar.watch('.', {
 						ignoreInitial: true,
 						cwd: devModulesPath,
-						ignored: (path, stats) => {
+						ignored: (filePath, stats) => {
+							for (const segment of filePath.split(path.sep)) {
+								if (segment === 'node_modules' || segment === '.git') {
+									return true
+								}
+							}
 							if (
 								stats?.isFile() &&
-								!path.endsWith('.mjs') &&
-								!path.endsWith('.js') &&
-								!path.endsWith('.cjs') &&
-								!path.endsWith('.json')
+								!filePath.endsWith('.mjs') &&
+								!filePath.endsWith('.js') &&
+								!filePath.endsWith('.cjs') &&
+								!filePath.endsWith('.json')
 							) {
-								return true
-							}
-							if (path.includes('node_modules')) {
 								return true
 							}
 							return false

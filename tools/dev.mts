@@ -152,55 +152,58 @@ const mainWatcher = chokidar
 	})
 
 if (devModulesPath) {
+	const sourceExtensions = ['.mjs', '.js', '.cjs', '.json']
+
+	// Decide whether a path should be excluded from the module watcher
+	const isNotModuleSource = (filePath: string, stats?: fs.Stats): boolean => {
+		for (const segment of filePath.split(path.sep)) {
+			if (segment === 'node_modules' || segment === '.git') {
+				return true
+			}
+		}
+		if (stats?.isFile() && !sourceExtensions.some((ext) => filePath.endsWith(ext))) {
+			return true
+		}
+		return false
+	}
+
+	const handleModuleChange = (event: string, filename: string) => {
+		const moduleDirName = filename.split(path.sep)[0]
+		// Module changed
+
+		let fn = cachedDebounces[moduleDirName]
+		if (!fn) {
+			fn = debounceFn(
+				() => {
+					console.log('Sending reload for module:', moduleDirName)
+					if (node) {
+						node.send({
+							messageType: 'reload-extra-module',
+							fullpath: path.join(devModulesPath, moduleDirName),
+						})
+					}
+				},
+				{
+					after: true,
+					before: false,
+					wait: 1000,
+				}
+			)
+			cachedDebounces[moduleDirName] = fn
+		}
+
+		fn()
+	}
+
 	// Stagger module watcher startup to avoid FD spike during initialization
 	mainWatcher.on('ready', () => {
 		chokidar
 			.watch('.', {
 				cwd: devModulesPath,
 				ignoreInitial: true,
-				ignored: (filePath, stats) => {
-					if (
-						stats?.isFile() &&
-						!filePath.endsWith('.mjs') &&
-						!filePath.endsWith('.js') &&
-						!filePath.endsWith('.cjs') &&
-						!filePath.endsWith('.json')
-					) {
-						return true
-					}
-					if (filePath.includes('node_modules')) {
-						return true
-					}
-					return false
-				},
+				ignored: isNotModuleSource,
 			})
-			.on('all', (event, filename) => {
-				const moduleDirName = filename.split(path.sep)[0]
-				// Module changed
-
-				let fn = cachedDebounces[moduleDirName]
-				if (!fn) {
-					fn = debounceFn(
-						() => {
-							console.log('Sending reload for module:', moduleDirName)
-							if (node) {
-								node.send({
-									messageType: 'reload-extra-module',
-									fullpath: path.join(devModulesPath, moduleDirName),
-								})
-							}
-						},
-						{
-							after: true,
-							before: false,
-							wait: 1000,
-						}
-					)
-					cachedDebounces[moduleDirName] = fn
-				}
-
-				fn()
-			})
+			.on('all', handleModuleChange)
 			.on('error', (error) => {
 				console.warn(`Module watcher error: ${error}`)
 			})
