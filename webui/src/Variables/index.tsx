@@ -1,22 +1,22 @@
-import { faArrowLeft, faArrowRight, faDollarSign, faSquareRootVariable } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faArrowRight, faDollarSign } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import './variables-category-grid.css'
 import { observer } from 'mobx-react-lite'
 import { memo, useCallback, useContext } from 'react'
 import type { ClientConnectionConfig } from '@companion-app/shared/Model/Connections.js'
-import { Button, ButtonGroup, LinkButton } from '~/Components/Button'
+import { LinkButton } from '~/Components/Button'
 import { CollapsibleTree, type CollapsibleTreeHeaderProps } from '~/Components/CollapsibleTree/CollapsibleTree.js'
 import {
 	useConnectionLeafTree,
 	type CollectionGroupMeta,
 	type ConnectionLeafItem,
 } from '~/Components/CollapsibleTree/useConnectionLeafTree.js'
-import { Grid } from '~/Components/Grid'
 import { VariablesTable } from '~/Components/VariablesTable.js'
 import { usePanelCollapseHelper } from '~/Helpers/CollapseHelper.js'
-import { ContextHelpButton } from '~/Layout/PanelIcons'
+import { PageHeader } from '~/Layout/PageHeader'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
+import { VariablesNav } from './VariablesNav.js'
 
 const VariableLeaf = observer(function VariableLeaf({ leaf }: { leaf: ConnectionLeafItem }) {
 	const { variablesStore } = useContext(RootAppStoreContext)
@@ -83,73 +83,59 @@ export const ConnectionVariablesPage = observer(function VariablesConnectionList
 		: []
 
 	return (
-		<Grid.Row>
-			<Grid.Col xs={12} className="flex-column-layout">
-				<div className="fixed-header">
-					<h4 className="button-inline">
-						Variables
-						<ContextHelpButton action="/user-guide/config/variables" />
-					</h4>
-					<p>
-						Variables are dynamic placeholders that can be used in text, actions, and feedbacks. They automatically
-						update with live content, making it easy to create customized and responsive displays.
-					</p>
-				</div>
+		<div className="page-shell">
+			<PageHeader icon={faDollarSign} title="Variables" helpAction="/user-guide/config/variables" />
 
-				<div className="scrollable-content">
-					<div className="variables-category-grid">
-						<LinkButton color="info" to="/variables/custom" className="mb-4">
-							<h6 className="mb-0 py-1">
-								<FontAwesomeIcon icon={faDollarSign} className="me-1" />
-								Custom Variables
-							</h6>
-						</LinkButton>
-						<LinkButton color="info" to="/variables/expression" className="mb-4">
-							<h6 className="mb-0 py-1">
-								<FontAwesomeIcon icon={faSquareRootVariable} className="me-1" /> Expression Variables
-							</h6>
-						</LinkButton>
+			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+				<VariablesNav activeTab="connections" />
+
+				<div className="flex-1 min-h-0 overflow-y-auto">
+					<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-3">
+						<h4 className="text-base font-bold text-body mb-1">Connection Variables</h4>
+						<p className="text-xs text-muted mb-0">
+							Select a active module connection below to inspect its live dynamic variables.
+						</p>
 					</div>
 
-					<CollapsibleTree
-						nodes={nodes}
-						staticLeaves={staticLeaves}
-						ungroupedLeaves={ungroupedLeaves}
-						ungroupedLabel="Ungrouped Connections"
-						collapseHelper={collapseHelper}
-						HeaderComponent={VariableGroupHeader}
-						LeafComponent={VariableLeaf}
-						onLeafClick={(leaf) => void navigate({ to: `/variables/connection/${leaf.connectionLabel}` })}
-					/>
+					<div className="rounded-lg border border-border/70 bg-surface p-3">
+						<CollapsibleTree
+							nodes={nodes}
+							staticLeaves={staticLeaves}
+							ungroupedLeaves={ungroupedLeaves}
+							ungroupedLabel="Ungrouped Connections"
+							collapseHelper={collapseHelper}
+							HeaderComponent={VariableGroupHeader}
+							LeafComponent={VariableLeaf}
+							onLeafClick={(leaf) => void navigate({ to: `/variables/connection/${leaf.connectionLabel}` })}
+						/>
+					</div>
 				</div>
-			</Grid.Col>
-		</Grid.Row>
+			</div>
+		</div>
 	)
 })
 
 export function VariablesListPage(): React.JSX.Element {
 	const { label } = useParams({ from: '/_app/variables/connection/$label' })
 
-	// Future: if label is not found, redirect to /variables
-	// 	throw redirect({ to: '/variables' })
-
 	return (
-		<div className="variables-panel">
-			<div>
-				<h4 style={{ marginBottom: '0.8rem' }}>Variables</h4>
-				<ButtonGroup>
-					<LinkButton color="primary" size="sm" to="/variables">
-						<FontAwesomeIcon icon={faArrowLeft} />
-						&nbsp; Go back
-					</LinkButton>
-					<Button color="secondary" size="sm" disabled>
-						{label}
-					</Button>
-				</ButtonGroup>
-			</div>
+		<div className="page-shell">
+			<PageHeader icon={faDollarSign} title="Variables" helpAction="/user-guide/config/variables" />
 
-			<VariablesTable label={label} />
-			<br className="clear-both" />
+			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+				<div className="flex items-center gap-2 mb-3">
+					<LinkButton color="secondary" size="sm" to="/variables">
+						<FontAwesomeIcon icon={faArrowLeft} className="me-1.5" /> Back to Variables
+					</LinkButton>
+					<span className="text-sm font-bold text-body px-2.5 py-1 rounded-md bg-surface-muted border border-border/60">
+						{label}
+					</span>
+				</div>
+
+				<div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border/70 bg-surface p-4">
+					<VariablesTable label={label} />
+				</div>
+			</div>
 		</div>
 	)
 }

@@ -74,26 +74,40 @@ const ModuleManagePanelInner = observer(function ModuleManagePanelInner({
 
 	return (
 		<>
-			<div className="secondary-panel-simple-header">
-				<h4 className="panel-title">
-					Manage {baseInfo?.name ?? moduleId} ({capitalize(moduleType)})
-				</h4>
-				<div className="header-buttons">
+			<div className="secondary-panel-simple-header flex items-center justify-between gap-3 px-4 py-3 border-b border-border bg-surface-muted/30 shrink-0 relative">
+				<div className="flex items-center gap-2 min-w-0 pr-16">
+					<span className="px-2 py-0.5 rounded text-2xs font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0">
+						{capitalize(moduleType)}
+					</span>
+					<h3 className="text-base font-bold truncate text-body mb-0">{baseInfo?.name ?? moduleId}</h3>
+				</div>
+
+				<div className="flex items-center gap-2 pr-8">
 					{!!moduleStoreBaseInfo?.githubUrl && (
-						<WindowLinkOpen title="Open GitHub Page" href={moduleStoreBaseInfo.githubUrl}>
-							<FontAwesomeIcon icon={faGithub} size="xl" />
+						<WindowLinkOpen
+							title="Open GitHub Page"
+							href={moduleStoreBaseInfo.githubUrl}
+							className="text-muted hover:text-body text-xs p-1"
+						>
+							<FontAwesomeIcon icon={faGithub} className="text-sm" />
 						</WindowLinkOpen>
 					)}
 					{!!moduleStoreBaseInfo && (
-						<WindowLinkOpen className="ms-1" title="Open Store Page" href={moduleStoreBaseInfo.storeUrl}>
-							<FontAwesomeIcon icon={faExternalLink} size="xl" />
+						<WindowLinkOpen
+							className="text-muted hover:text-body text-xs p-1"
+							title="Open Store Page"
+							href={moduleStoreBaseInfo.storeUrl}
+						>
+							<FontAwesomeIcon icon={faExternalLink} className="text-sm" />
 						</WindowLinkOpen>
 					)}
-					<CloseButton closeFn={doCloseModule} visibilityClass="xl:hidden" />
 				</div>
+
+				<CloseButton closeFn={doCloseModule} className="absolute top-2.5 right-3" />
 			</div>
-			<div className="secondary-panel-simple-body">
-				<div className="refresh-and-last-updated">
+
+			<div className="secondary-panel-simple-body p-4 space-y-4 overflow-y-auto flex-1">
+				<div className="flex items-center justify-between gap-2 text-xs text-muted">
 					<RefreshModuleInfo moduleType={moduleType} moduleId={moduleId} />
 					<LastUpdatedTimestamp timestamp={moduleStoreInfo?.lastUpdated} />
 				</div>

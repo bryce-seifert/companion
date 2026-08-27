@@ -1,6 +1,8 @@
 import { DragDropProvider } from '@dnd-kit/react'
 import './loading.css'
 import './App.css'
+import { faBars } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Outlet } from '@tanstack/react-router'
 import { useSubscription } from '@trpc/tanstack-react-query'
 import { observer } from 'mobx-react-lite'
@@ -18,8 +20,8 @@ import { SecretTextInputField } from './Components/SecretTextInputField.js'
 import { ContextData } from './ContextData.js'
 import { EntityDragLayer } from './Controls/Components/EntityDragLayer.js'
 import { TRPCConnectionStatus, useTRPCConnectionStatus } from './Hooks/useTRPCConnectionStatus.js'
-import { MyHeader } from './Layout/Header.js'
-import { MySidebar, SidebarStateProvider } from './Layout/Sidebar.js'
+import { AdminLockContext } from './Layout/AdminLockContext.js'
+import { MySidebar, SidebarStateProvider, useSidebarState } from './Layout/Sidebar.js'
 import { PRIMARY_COLOR } from './Resources/Constants.js'
 import { MyErrorBoundary } from './Resources/Error.js'
 import { MonacoLoader } from './Resources/MonacoLoader.js'
@@ -170,31 +172,73 @@ const AppMain = observer(function AppMain({ connected, loadingComplete, loadingP
 
 	return (
 		<div className="c-app">
-			<SidebarStateProvider>
-				{canLock && unlocked && (userConfig.properties?.admin_timeout ?? 0) > 0 ? (
-					<IdleTimerWrapper setLocked={setLocked} timeoutMinutes={userConfig.properties?.admin_timeout} />
-				) : (
-					''
-				)}
-				<MySidebar />
-				<div className="wrapper flex flex-col min-h-screen bg-app-frame-bg">
-					<MyHeader setLocked={setLocked} canLock={canLock && unlocked} />
-					<div className="body grow">
-						{connected && loadingComplete ? (
-							!canLock || unlocked ? (
-								<AppContent />
-							) : (
-								<AppAuthWrapper setUnlocked={setUnlockedInner} />
-							)
-						) : (
-							<AppLoading progress={loadingProgress} connected={connected} />
-						)}
-					</div>
-				</div>
-			</SidebarStateProvider>
+			<AdminLockContext.Provider value={{ canLock: canLock && unlocked, setLocked }}>
+				<SidebarStateProvider>
+					{canLock && unlocked && (userConfig.properties?.admin_timeout ?? 0) > 0 ? (
+						<IdleTimerWrapper setLocked={setLocked} timeoutMinutes={userConfig.properties?.admin_timeout} />
+					) : (
+						''
+					)}
+					<MySidebar />
+					<AppWrapper
+						connected={connected}
+						loadingComplete={loadingComplete}
+						loadingProgress={loadingProgress}
+						canLock={canLock}
+						unlocked={unlocked}
+						setUnlockedInner={setUnlockedInner}
+					/>
+				</SidebarStateProvider>
+			</AdminLockContext.Provider>
 		</div>
 	)
 })
+
+interface AppWrapperProps {
+	connected: boolean
+	loadingComplete: boolean
+	loadingProgress: number
+	canLock: boolean
+	unlocked: boolean
+	setUnlockedInner: () => void
+}
+
+function AppWrapper({
+	connected,
+	loadingComplete,
+	loadingProgress,
+	canLock,
+	unlocked,
+	setUnlockedInner,
+}: AppWrapperProps) {
+	const { mobileMode, handleShowSidebar } = useSidebarState()
+
+	return (
+		<div className="wrapper flex flex-col min-h-screen bg-app-frame-bg relative">
+			{mobileMode && (
+				<button
+					type="button"
+					className="sidebar-mobile-toggle block-collapse"
+					onClick={handleShowSidebar}
+					title="Show Sidebar"
+				>
+					<FontAwesomeIcon icon={faBars} className="w-5 h-5" />
+				</button>
+			)}
+			<div className="body grow">
+				{connected && loadingComplete ? (
+					!canLock || unlocked ? (
+						<AppContent />
+					) : (
+						<AppAuthWrapper setUnlocked={setUnlockedInner} />
+					)
+				) : (
+					<AppLoading progress={loadingProgress} connected={connected} />
+				)}
+			</div>
+		</div>
+	)
+}
 
 interface IdleTimerWrapperProps {
 	setLocked: () => void

@@ -28,31 +28,27 @@ export const ModuleVersionsRefresh = observer(function ModuleVersionsRefresh({
 
 	if (refreshProgress === 1) {
 		return (
-			<div
-				className="float_right"
+			<button
+				type="button"
 				onClick={doRefreshModules}
-				onKeyDown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.preventDefault()
-						doRefreshModules()
-					}
-				}}
-				role="button"
-				tabIndex={0}
-				title="Refresh module versions"
+				className="w-6 h-6 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent"
+				title="Refresh module info & versions"
+				aria-label="Refresh module info & versions"
 			>
-				<FontAwesomeIcon icon={faSync} aria-label="Refresh module versions" />
-			</div>
+				<FontAwesomeIcon icon={faSync} className="text-xs" />
+			</button>
 		)
 	} else {
 		return (
-			<div className="float_right" title={`Refreshing module info ${Math.round(refreshProgress * 100)}%`}>
-				<FontAwesomeIcon
-					icon={faSync}
-					spin={true}
-					aria-label={`Refreshing module info ${Math.round(refreshProgress * 100)}%`}
-				/>
-			</div>
+			<button
+				type="button"
+				disabled
+				className="w-6 h-6 inline-flex items-center justify-center rounded-lg text-muted transition-colors border-0 bg-transparent"
+				title={`Refreshing module info ${Math.round(refreshProgress * 100)}%`}
+				aria-label={`Refreshing module info ${Math.round(refreshProgress * 100)}%`}
+			>
+				<FontAwesomeIcon icon={faSync} spin={true} className="text-xs" />
+			</button>
 		)
 	}
 })

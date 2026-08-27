@@ -1,6 +1,6 @@
 import { useDragDropMonitor } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
-import { faAdd, faSort, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faAdd, faCog, faSort, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Outlet, useMatchRoute, useNavigate } from '@tanstack/react-router'
 import classNames from 'classnames'
@@ -8,15 +8,17 @@ import dayjs from 'dayjs'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useRef } from 'react'
 import type { BackupRulesConfig } from '@companion-app/shared/Model/UserConfigModel.js'
-import { Button, ButtonGroup } from '~/Components/Button'
+import { Button } from '~/Components/Button'
 import { Grid } from '~/Components/Grid'
 import { SwitchInputField } from '~/Components/SwitchInputField.js'
+import { PageHeader } from '~/Layout/PageHeader.js'
 import { ContextHelpButton } from '~/Layout/PanelIcons.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '../Components/GenericConfirmModal.js'
 import { NonIdealState } from '../Components/NonIdealState.js'
 import { RootAppStoreContext } from '../Stores/RootAppStore.js'
 import { backupTypes } from './BackupConstants.js'
+import { SettingsNav } from './SettingsNav.js'
 
 export const SettingsBackupsPage = observer(function UserConfig() {
 	const navigate = useNavigate({ from: '/settings/backups' })
@@ -31,11 +33,9 @@ export const SettingsBackupsPage = observer(function UserConfig() {
 	const createRuleMutation = useMutationExt(trpc.importExport.backupRules.createRule.mutationOptions())
 
 	const doAddNew = useCallback(() => {
-		// Create the new rule using the dedicated endpoint
 		createRuleMutation
 			.mutateAsync({ name: 'New Backup Rule' })
 			.then((ruleId) => {
-				// Navigate to the new rule for editing
 				doEditRule(ruleId)
 			})
 			.catch((err) => {
@@ -51,44 +51,50 @@ export const SettingsBackupsPage = observer(function UserConfig() {
 	const showSecondaryPanel = !!selectedRuleId
 
 	return (
-		<Grid.Row className="split-panels">
-			<Grid.Col xs={12} xl={6} className={`primary-panel ${showPrimaryPanel ? '' : 'xl:block hidden'}`}>
-				<div className="flex-column-layout">
-					<div className="fixed-header">
-						<div className="flex justify-between">
-							<div>
-								<h4 className="button-inline">
-									Settings - Backups
-									<ContextHelpButton action="/user-guide/config/settings#backups">
-										Companion can back itself up on a schedule to multiple directories if desired. These backups can be
-										synced to cloud storage or backed up during OS backup to give more peace of mind to administrators.
-									</ContextHelpButton>
-								</h4>
-								<p>Scheduled backups of your Companion configuration. Settings apply instantaneously!</p>
+		<div className="page-shell">
+			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings#backups" />
+
+			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+				<SettingsNav activeTab="backups" />
+
+				<div className="flex-1 min-h-0 overflow-y-auto">
+					<Grid.Row className="split-panels flex-1 min-h-0">
+						<Grid.Col
+							xs={12}
+							xl={selectedRuleId ? 6 : 12}
+							className={`primary-panel ${showPrimaryPanel ? '' : 'xl:block hidden'}`}
+						>
+							<div className="flex flex-col h-full gap-3">
+								<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2 shrink-0">
+									<div>
+										<h4 className="text-base font-bold text-body mb-0.5 flex items-center gap-2">
+											<span>Scheduled Backups</span>
+											<ContextHelpButton action="/user-guide/config/settings#backups" />
+										</h4>
+										<p className="text-xs text-muted mb-0">
+											Automatically back up Companion configuration files on a schedule.
+										</p>
+									</div>
+									<Button color="primary" size="sm" onClick={doAddNew}>
+										<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Backup Rule
+									</Button>
+								</div>
+
+								<div className="flex-1 min-h-0 scrollable-content rounded-lg border border-border/70 bg-surface p-2">
+									<BackupsTable editRule={doEditRule} />
+								</div>
 							</div>
-						</div>
+						</Grid.Col>
 
-						<div className="mb-2">
-							<ButtonGroup>
-								<Button color="primary" onClick={doAddNew} size="sm">
-									<FontAwesomeIcon icon={faAdd} /> Add Backup Rule
-								</Button>
-							</ButtonGroup>
-						</div>
-					</div>
-
-					<div className="scrollable-content">
-						<BackupsTable editRule={doEditRule} />
-					</div>
+						<Grid.Col xs={12} xl={6} className={`secondary-panel ${showSecondaryPanel ? '' : 'xl:block hidden'}`}>
+							<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden border border-border/70 rounded-lg bg-surface">
+								<Outlet />
+							</div>
+						</Grid.Col>
+					</Grid.Row>
 				</div>
-			</Grid.Col>
-
-			<Grid.Col xs={12} xl={6} className={`secondary-panel ${showSecondaryPanel ? '' : 'xl:block hidden'}`}>
-				<div className="secondary-panel-simple">
-					<Outlet />
-				</div>
-			</Grid.Col>
-		</Grid.Row>
+			</div>
+		</div>
 	)
 })
 
@@ -116,13 +122,9 @@ const BackupsTable = observer(function BackupsTable({ editRule }: BackupsTablePr
 		onDragEnd(event) {
 			if (event.canceled) return
 			const { source } = event.operation
-			// Only handle backup-rule drags (the provider is shared across the whole app).
-			// For sortables the move is described by the source's projected index, not `target`.
 			if (!source || source.type !== 'backup-rule' || !isSortable(source)) return
 			const { initialIndex, index } = source
 			if (initialIndex === index) return
-			// The dragged rule should land where the rule currently at `index` sits; the backend
-			// removes the dragged rule then re-inserts it at the target's position.
 			const targetRule = backupRules[index]
 			if (!targetRule) return
 			moveRule(String(source.id), targetRule.id)
@@ -130,13 +132,13 @@ const BackupsTable = observer(function BackupsTable({ editRule }: BackupsTablePr
 	})
 
 	return (
-		<div className="collections-nesting-table mb-2">
+		<div className="space-y-1">
 			{backupRules.length > 0 ? (
 				backupRules.map((rule, index) => (
 					<BackupsTableRow key={rule.id} rule={rule} index={index} editRule={editRule} />
 				))
 			) : (
-				<div className="currentlyNone">
+				<div className="py-8">
 					<NonIdealState icon={faAdd} text="No backup rules configured. Add one to get started!" />
 				</div>
 			)}
@@ -158,7 +160,6 @@ function BackupsTableRow({ rule, index, editRule }: BackupsTableRowProps) {
 
 	const doEnableDisable = useCallback(
 		(enabled: boolean) => {
-			// Toggle the enabled state using the dedicated endpoint
 			updateRuleFieldMutation.mutateAsync({ ruleId: rule.id, field: 'enabled', value: enabled }).catch((err) => {
 				console.error('Error updating backup rule enabled state:', err)
 			})
@@ -192,41 +193,43 @@ function BackupsTableRow({ rule, index, editRule }: BackupsTableRowProps) {
 	return (
 		<div
 			ref={ref}
-			className={classNames('collections-nesting-table-row-item', {
-				'row-selected': isSelected,
-			})}
+			className={classNames(
+				'flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors',
+				isSelected
+					? 'bg-primary/10 font-semibold text-primary border-l-4 border-l-primary rounded-l-none'
+					: 'hover:bg-surface-muted/50 bg-transparent'
+			)}
 		>
-			<div className="collections-nesting-table-row-item-grid">
-				<div ref={handleRef} className="row-reorder-handle">
-					<FontAwesomeIcon icon={faSort} />
-					<GenericConfirmModal ref={confirmRef} />
-				</div>
-				<div className="grow backup-rule-content">
-					<div onClick={doEdit} className="cursor-pointer backup-rule-info">
-						<b>{rule.name}</b>
-						<br />
-						<small>Format: {backupTypeLabel}</small>
-					</div>
-					<div onClick={doEdit} className="cursor-pointer backup-rule-cron">
-						<small>Cron: {rule.cron}</small>
-						<br />
-						{rule.lastRan ? <small>Last run: {dayjs(rule.lastRan).format('MM/DD HH:mm:ss')}</small> : ''}
-					</div>
-					<div className="backup-rule-actions">
-						<ButtonGroup>
-							<SwitchInputField
-								id={undefined}
-								value={rule.enabled}
-								setValue={doEnableDisable}
-								tooltip={rule.enabled ? 'Disable rule' : 'Enable rule'}
-							/>
-
-							<Button onClick={doDelete} title="Delete">
-								<FontAwesomeIcon icon={faTrash} />
-							</Button>
-						</ButtonGroup>
-					</div>
-				</div>
+			<div ref={handleRef} className="cursor-grab text-muted/60 hover:text-muted px-1">
+				<FontAwesomeIcon icon={faSort} />
+				<GenericConfirmModal ref={confirmRef} />
+			</div>
+			<div className="grow min-w-0" onClick={doEdit}>
+				<b className="text-sm text-body truncate block">{rule.name}</b>
+				<span className="text-xs text-muted">Format: {backupTypeLabel}</span>
+			</div>
+			<div className="min-w-0 text-xs text-muted hidden sm:block" onClick={doEdit}>
+				<span>Cron: {rule.cron}</span>
+				{rule.lastRan && (
+					<span className="block text-2xs text-muted/70">Last run: {dayjs(rule.lastRan).format('MM/DD HH:mm:ss')}</span>
+				)}
+			</div>
+			<div className="shrink-0 flex items-center gap-2">
+				<SwitchInputField
+					id={undefined}
+					value={rule.enabled}
+					setValue={doEnableDisable}
+					tooltip={rule.enabled ? 'Disable rule' : 'Enable rule'}
+				/>
+				<Button
+					color="secondary"
+					size="sm"
+					onClick={doDelete}
+					title="Delete"
+					className="text-rose-500 hover:bg-rose-500/10"
+				>
+					<FontAwesomeIcon icon={faTrash} />
+				</Button>
 			</div>
 		</div>
 	)

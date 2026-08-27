@@ -1,10 +1,12 @@
 import {
 	faAdd,
+	faClock,
 	faClone,
 	faDownload,
 	faFileExport,
 	faLayerGroup,
 	faList,
+	faPlay,
 	faTrash,
 	faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
@@ -28,6 +30,7 @@ import { SearchBox } from '~/Components/SearchBox'
 import { SwitchInputField } from '~/Components/SwitchInputField'
 import { PanelCollapseHelperProvider } from '~/Helpers/CollapseHelper'
 import { useTwoPanelMode } from '~/Hooks/useLayoutMode'
+import { PageHeader } from '~/Layout/PageHeader'
 import { CloseButton, ContextHelpButton } from '~/Layout/PanelIcons'
 import { sanitizeHtmlString } from '~/Resources/SanitizeHtml.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC'
@@ -119,75 +122,87 @@ export const TriggersPage = observer(function Triggers() {
 	const showSecondaryPanel = twoPanelMode || !!selectedTriggerId
 
 	return (
-		<Grid.Row className="triggers-page split-panels">
-			<GenericConfirmModal ref={confirmModalRef} />
-			<ConfirmExportModal ref={exportModalRef} title="Export Triggers" />
+		<div className="page-shell">
+			<PageHeader icon={faClock} title="Triggers" helpAction="/user-guide/config/triggers" />
 
-			<Grid.Col
-				xs={twoPanelMode ? 6 : 12}
-				className={classnames('primary-panel', showPrimaryPanel ? 'block' : 'hidden')}
-			>
-				<div className="flex-column-layout">
-					<div className="fixed-header">
-						<h4 className="button-inline">
-							Triggers
-							<ContextHelpButton action="/user-guide/config/triggers" />
-						</h4>
-						<p className="mb-2">
-							Triggers allow you to automate Companion by running actions when certain events occur, such as feedback or
-							variable updates.
-						</p>
+			<Grid.Row className="triggers-page split-panels flex-1 min-h-0 !h-auto">
+				<GenericConfirmModal ref={confirmModalRef} />
+				<ConfirmExportModal ref={exportModalRef} title="Export Triggers" />
 
-						<div className="mb-2">
-							<ButtonGroup>
-								<Button color="primary" onClick={doAddNew} size="sm">
-									<FontAwesomeIcon icon={faAdd} /> Add Trigger
+				<Grid.Col
+					xs={12}
+					xl={selectedTriggerId ? 6 : 12}
+					className={classnames('primary-panel h-full min-h-0', showPrimaryPanel ? 'block' : 'hidden xl:block')}
+				>
+					<div className="flex flex-col h-full min-h-0 gap-2">
+						{/* Top Header Card: Toolbar & Search */}
+						<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex flex-col gap-2.5 shrink-0">
+							<div className="flex items-center justify-between gap-2 flex-wrap">
+								<ButtonGroup>
+									<Button color="primary" onClick={doAddNew} size="sm">
+										<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Trigger
+									</Button>
+									<CreateCollectionButton />
+								</ButtonGroup>
+
+								<Button color="secondary" size="sm" onClick={showExportModal}>
+									<FontAwesomeIcon icon={faFileExport} className="me-1.5" /> Export All
 								</Button>
-								<CreateCollectionButton />
-							</ButtonGroup>
+							</div>
 
-							<Button color="secondary" className="float-right" size="sm" onClick={showExportModal}>
-								<FontAwesomeIcon icon={faFileExport} /> Export all
-							</Button>
+							<SearchBox
+								placeholder="Search triggers (e.g. Schedule, Variable, Button)..."
+								filter={filter}
+								setFilter={setFilter}
+								className="w-full h-9"
+							/>
 						</div>
 
-						<SearchBox placeholder="Filter ..." filter={filter} setFilter={setFilter} className="mb-1 mt-2" />
+						{/* Triggers Table Container */}
+						<div className="flex-1 min-h-0 scrollable-content rounded-md border border-border/70 bg-surface">
+							<PanelCollapseHelperProvider
+								storageId="trigger-groups"
+								knownPanelIds={triggersList.allCollectionIds}
+								defaultCollapsed
+							>
+								<TriggersTableContextProvider
+									deleteModalRef={confirmModalRef}
+									selectTrigger={selectTrigger}
+									selectedTriggerId={selectedTriggerId}
+								>
+									<CollectionsNestingTable<TriggerCollection, TriggerDataWithId>
+										NoContent={TriggerListNoContent}
+										ItemRow={TriggerItemRow}
+										GroupHeaderContent={TriggerGroupHeaderContent}
+										itemName="trigger"
+										dragId="trigger"
+										collectionsApi={triggerGroupsApi}
+										collections={triggersList.rootCollections()}
+										items={allTriggers}
+										selectedItemId={selectedTriggerId}
+									/>
+								</TriggersTableContextProvider>
+							</PanelCollapseHelperProvider>
+						</div>
 					</div>
+				</Grid.Col>
 
-					<div className="scrollable-content">
-						<PanelCollapseHelperProvider
-							storageId="trigger-groups"
-							knownPanelIds={triggersList.allCollectionIds}
-							defaultCollapsed
-						>
-							<TriggersTableContextProvider deleteModalRef={confirmModalRef} selectTrigger={selectTrigger}>
-								<CollectionsNestingTable<TriggerCollection, TriggerDataWithId>
-									// Heading={TriggerListTableHeading}
-									NoContent={TriggerListNoContent}
-									ItemRow={TriggerItemRow}
-									GroupHeaderContent={TriggerGroupHeaderContent}
-									itemName="trigger"
-									dragId="trigger"
-									collectionsApi={triggerGroupsApi}
-									collections={triggersList.rootCollections()}
-									items={allTriggers}
-									selectedItemId={selectedTriggerId}
+				{showSecondaryPanel && (
+					<Grid.Col xs={12} xl={6} className="secondary-panel h-full min-h-0 block">
+						<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden">
+							{!!selectedTriggerId && (
+								<TriggerEditPanelHeading
+									doCloseTrigger={doCloseTrigger}
+									twoPanelMode={twoPanelMode}
+									controlId={CreateTriggerControlId(selectedTriggerId)}
 								/>
-							</TriggersTableContextProvider>
-						</PanelCollapseHelperProvider>
-					</div>
-				</div>
-			</Grid.Col>
-
-			<Grid.Col xs={twoPanelMode ? 6 : 12} className={`secondary-panel ${showSecondaryPanel ? 'block' : 'hidden'}`}>
-				<div className="secondary-panel-simple">
-					{!!selectedTriggerId && (
-						<TriggerEditPanelHeading doCloseTrigger={doCloseTrigger} twoPanelMode={twoPanelMode} />
-					)}
-					<Outlet />
-				</div>
-			</Grid.Col>
-		</Grid.Row>
+							)}
+							<Outlet />
+						</div>
+					</Grid.Col>
+				)}
+			</Grid.Row>
+		</div>
 	)
 })
 
@@ -234,6 +249,7 @@ interface TriggersTableRowProps {
 
 const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersTableRowProps) {
 	const tableContext = useTriggersTableContext()
+	const isSelected = tableContext.selectedTriggerId === item.id
 
 	const deleteMutation = useMutationExt(trpc.controls.triggers.delete.mutationOptions())
 	const cloneMutation = useMutationExt(trpc.controls.triggers.clone.mutationOptions())
@@ -292,44 +308,65 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 	const triggerOrCollectionDisabled = !item.enabled || collectionDisabled
 
 	return (
-		<div className="flex flex-row items-center gap-2 cursor-pointer">
+		<div
+			className={classnames(
+				'flex flex-row items-center gap-3 cursor-pointer py-2 px-3 rounded-lg transition-colors hover:bg-surface-muted/50',
+				isSelected
+					? 'bg-primary/10 font-semibold text-primary border-l-4 border-l-primary rounded-l-none'
+					: 'bg-transparent'
+			)}
+		>
 			<div
-				className={classnames('flex flex-col grow min-w-0', { disabled: triggerOrCollectionDisabled })}
+				className={classnames('flex flex-col grow min-w-0', { 'opacity-60': triggerOrCollectionDisabled })}
 				onClick={doEdit}
 			>
-				<b>
-					{item.name}
-					{item.isRateLimited ? (
+				<b className="truncate text-sm text-body flex items-center gap-2">
+					<span>{item.name}</span>
+					{item.isRateLimited && (
 						<span
-							className="ms-2 text-warning"
-							title="This trigger is firing very rapidly and is being rate-limited. This is often caused by an accidental feedback loop, where the trigger's actions change a variable that re-triggers it."
+							className="text-amber-500 font-normal text-xs flex items-center gap-1"
+							title="This trigger is firing very rapidly and is being rate-limited."
 						>
 							<FontAwesomeIcon icon={faTriangleExclamation} /> Rate limited
 						</span>
-					) : null}
+					)}
 				</b>
-				<span className="truncate" dangerouslySetInnerHTML={descriptionHtml} />
-				{item.lastExecuted ? <small>Last run: {dayjs(item.lastExecuted).format(tableDateFormat)}</small> : ''}
+				<span className="truncate text-xs text-muted" dangerouslySetInnerHTML={descriptionHtml} />
+				{item.lastExecuted && (
+					<small className="text-2xs text-muted/70">Last run: {dayjs(item.lastExecuted).format(tableDateFormat)}</small>
+				)}
 			</div>
-			<div className="action-buttons w-auto">
-				<ButtonGroup className="ms-1">
-					<SwitchInputField
-						id={undefined}
-						value={item.enabled}
-						setValue={doEnableDisable}
-						tooltip={
-							(item.enabled ? 'Disable trigger' : 'Enable trigger') +
-							(collectionDisabled ? ' when collection is enabled.' : '')
-						}
-					/>
 
-					<LinkButtonExternal href={makeAbsolutePath(`/int/export/triggers/single/${item.id}`)} title="Export">
+			<div className="shrink-0 flex items-center gap-2">
+				<SwitchInputField
+					id={undefined}
+					value={item.enabled}
+					setValue={doEnableDisable}
+					tooltip={
+						(item.enabled ? 'Disable trigger' : 'Enable trigger') +
+						(collectionDisabled ? ' when collection is enabled.' : '')
+					}
+				/>
+
+				<ButtonGroup>
+					<LinkButtonExternal
+						color="secondary"
+						size="sm"
+						href={makeAbsolutePath(`/int/export/triggers/single/${item.id}`)}
+						title="Export Trigger"
+					>
 						<FontAwesomeIcon icon={faDownload} />
 					</LinkButtonExternal>
-					<Button onClick={doClone} title="Clone">
+					<Button color="secondary" size="sm" onClick={doClone} title="Clone Trigger">
 						<FontAwesomeIcon icon={faClone} />
 					</Button>
-					<Button onClick={doDelete} title="Delete">
+					<Button
+						color="secondary"
+						size="sm"
+						onClick={doDelete}
+						title="Delete Trigger"
+						className="text-rose-500 hover:bg-rose-500/10"
+					>
 						<FontAwesomeIcon icon={faTrash} />
 					</Button>
 				</ButtonGroup>
@@ -348,8 +385,8 @@ function CreateCollectionButton() {
 	}, [createMutation])
 
 	return (
-		<Button color="info" size="sm" onClick={doCreateCollection}>
-			<FontAwesomeIcon icon={faLayerGroup} /> Create Collection
+		<Button color="secondary" size="sm" onClick={doCreateCollection}>
+			<FontAwesomeIcon icon={faLayerGroup} className="me-1.5" /> Create Collection
 		</Button>
 	)
 }
@@ -357,18 +394,40 @@ function CreateCollectionButton() {
 interface TriggerEditPanelHeadingProps {
 	doCloseTrigger: () => void
 	twoPanelMode: boolean
+	controlId: string
 }
 
-function TriggerEditPanelHeading({ doCloseTrigger, twoPanelMode }: TriggerEditPanelHeadingProps) {
+function TriggerEditPanelHeading({ doCloseTrigger, twoPanelMode, controlId }: TriggerEditPanelHeadingProps) {
 	return (
-		<div className="secondary-panel-simple-header">
-			<h4 className="panel-title">Edit Trigger</h4>
-			<div className="header-buttons">
+		<div className="flex items-center justify-between gap-3 p-3 bg-surface-muted/40 border-b border-border/70 shrink-0">
+			<div className="flex items-center gap-2 min-w-0">
+				<span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-surface-muted text-muted text-xs shrink-0">
+					<FontAwesomeIcon icon={faClock} />
+				</span>
+				<h3 className="text-sm font-bold text-body mb-0 truncate">Edit Trigger</h3>
+			</div>
+			<div className="flex items-center gap-2 shrink-0">
+				<TestActionsHeaderButton controlId={controlId} />
 				<ContextHelpButton action="/user-guide/config/triggers#configuring">
 					Define your trigger here.
 				</ContextHelpButton>
 				{!twoPanelMode && <CloseButton closeFn={doCloseTrigger} />}
 			</div>
 		</div>
+	)
+}
+
+function TestActionsHeaderButton({ controlId }: { controlId: string }): React.JSX.Element {
+	const testActionsMutation = useMutationExt(trpc.controls.triggers.testActions.mutationOptions())
+
+	const hotPressDown = useCallback(() => {
+		testActionsMutation.mutateAsync({ controlId }).catch((e) => console.error(`Hot press failed: ${e}`))
+	}, [testActionsMutation, controlId])
+
+	return (
+		<Button color="warning" size="sm" onClick={hotPressDown} title="Test actions for this trigger">
+			<FontAwesomeIcon icon={faPlay} className="me-1.5 text-xs" />
+			Test Actions
+		</Button>
 	)
 }

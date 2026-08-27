@@ -1,6 +1,6 @@
 import {
-	faArrowLeft,
 	faCompressArrowsAlt,
+	faDollarSign,
 	faExpandArrowsAlt,
 	faLayerGroup,
 	faList,
@@ -10,7 +10,7 @@ import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useRef, useState } from 'react'
 import { isCustomVariableValid } from '@companion-app/shared/CustomVariable.js'
 import type { CustomVariableDefinition } from '@companion-app/shared/Model/CustomVariableModel.js'
-import { Button, ButtonGroup, LinkButton } from '~/Components/Button'
+import { Button } from '~/Components/Button'
 import {
 	CollectionsNestingTable,
 	UNGROUPED_PANEL_ID,
@@ -25,7 +25,7 @@ import { NonIdealState } from '~/Components/NonIdealState.js'
 import { SearchBox } from '~/Components/SearchBox'
 import { TextInputFieldSimple } from '~/Components/TextInputField'
 import { PanelCollapseHelperProvider, usePanelCollapseHelperContext } from '~/Helpers/CollapseHelper.js'
-import { ContextHelpButton } from '~/Layout/PanelIcons'
+import { PageHeader } from '~/Layout/PageHeader'
 import { trpc, useMutationExt } from '~/Resources/TRPC'
 import { useComputed } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
@@ -34,6 +34,7 @@ import { useCustomVariablesCollectionsApi } from './CustomVariablesCollectionsAp
 import { CustomVariableRow } from './CustomVariablesListRow'
 import { CustomVariablesTableContextProvider } from './CustomVariablesTableContext'
 import { useVariablesValuesForLabel } from './useVariablesValuesForLabel'
+import { VariablesNav } from './VariablesNav.js'
 
 export type CustomVariableDefinitionExt = Omit<CustomVariableDefinition, 'collectionId'> & CollectionsNestingTableItem
 type CustomVariableCollectionExt = CollectionsNestingTableCollection
@@ -88,64 +89,65 @@ export const CustomVariablesListPage = observer(function CustomVariablesList() {
 	const customVariablesApi = useCustomVariablesApi(confirmModalRef)
 
 	return (
-		<div className="variables-panel">
+		<div className="page-shell">
 			<GenericConfirmModal ref={confirmModalRef} />
 
 			<PanelCollapseHelperProvider storageId="custom_variables" knownPanelIds={allVariableNames}>
-				<div>
-					<h4 className="button-inline">
-						Custom Variables
-						<ContextHelpButton action="/user-guide/config/variables#custom-variables" />
-					</h4>
-					<p className="mb-2">
-						Here you can create some variables which you can define the values of, and update with actions
-					</p>
+				<PageHeader
+					icon={faDollarSign}
+					title="Custom Variables"
+					helpAction="/user-guide/config/variables#custom-variables"
+				/>
 
-					<ButtonGroup>
-						<LinkButton color="primary" size="sm" to="/variables">
-							<FontAwesomeIcon icon={faArrowLeft} />
-							&nbsp; Go back
-						</LinkButton>
-						<Button color="secondary" size="sm" disabled>
-							Custom Variables
-						</Button>
-						<CreateCollectionButton />
-						{(customVariables.customVariables.size > 0 || customVariables.customVariableCollections.size > 0) && (
-							<ExpandCollapseButtons />
-						)}
-					</ButtonGroup>
-				</div>
+				<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+					<VariablesNav activeTab="custom" />
 
-				<SearchBox placeholder="Filter ..." filter={filter} setFilter={setFilter} className="mb-1 mt-2" />
+					<div className="flex flex-col flex-1 min-h-0 overflow-hidden gap-2">
+						{/* Top Header Card: Toolbar & Search */}
+						<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex flex-col gap-2.5 shrink-0">
+							<div className="flex items-center justify-between gap-2 flex-wrap">
+								<div className="flex items-center gap-2">
+									<CreateCollectionButton />
+									{(customVariables.customVariables.size > 0 || customVariables.customVariableCollections.size > 0) && (
+										<ExpandCollapseButtons />
+									)}
+								</div>
+								<div className="list-toolbar-panel">
+									<AddVariablePanel />
+								</div>
+							</div>
 
-				<div className="variables-table-scroller ">
-					<CustomVariablesTableContextProvider
-						customVariablesApi={customVariablesApi}
-						customVariableValues={customVariableValues}
-					>
-						<div className="variables-table">
-							<CollectionsNestingTable<CustomVariableCollectionExt, CustomVariableDefinitionExt>
-								// Heading={TriggerListTableHeading}
-								NoContent={CustomVariableListNoContent}
-								ItemRow={CustomVariableItemRow}
-								showCollapseButtons
-								itemName="custom variable"
-								dragId="custom-variable"
-								collectionsApi={collectionsApi}
-								collections={customVariables.rootCustomVariableCollections()}
-								items={allCustomVariables}
-								selectedItemId={null}
+							<SearchBox
+								placeholder="Search custom variables..."
+								filter={filter}
+								setFilter={setFilter}
+								className="w-full h-9"
 							/>
 						</div>
-					</CustomVariablesTableContextProvider>
-				</div>
 
-				<h5 className="mt-2">Create custom variable</h5>
-				<div className="mx-1 mb-1">
-					<AddVariablePanel />
+						{/* Custom Variables Table Container */}
+						<div className="flex-1 min-h-0 scrollable-content rounded-md border border-border/70 bg-surface">
+							<CustomVariablesTableContextProvider
+								customVariablesApi={customVariablesApi}
+								customVariableValues={customVariableValues}
+							>
+								<div className="variables-table">
+									<CollectionsNestingTable<CustomVariableCollectionExt, CustomVariableDefinitionExt>
+										NoContent={CustomVariableListNoContent}
+										ItemRow={CustomVariableItemRow}
+										showCollapseButtons
+										itemName="custom variable"
+										dragId="custom-variable"
+										collectionsApi={collectionsApi}
+										collections={customVariables.rootCustomVariableCollections()}
+										items={allCustomVariables}
+										selectedItemId={null}
+									/>
+								</div>
+							</CustomVariablesTableContextProvider>
+						</div>
+					</div>
 				</div>
-
-				<br className="clear-both" />
 			</PanelCollapseHelperProvider>
 		</div>
 	)
@@ -256,8 +258,8 @@ function CreateCollectionButton() {
 	}, [createMutation])
 
 	return (
-		<Button color="info" size="sm" onClick={doCreateCollection}>
-			<FontAwesomeIcon icon={faLayerGroup} /> Create Collection
+		<Button color="secondary" size="sm" onClick={doCreateCollection}>
+			<FontAwesomeIcon icon={faLayerGroup} className="me-1.5" /> Create Collection
 		</Button>
 	)
 }

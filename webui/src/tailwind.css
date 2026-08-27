@@ -47,7 +47,12 @@
 	--font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 	--font-mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
+	/* Steps below Tailwind's `text-xs` (0.75rem), for badges, table meta lines and toolbar chips. */
+	--text-2xs: 0.6875rem;
+	--text-3xs: 0.625rem;
+
 	--color-primary: #d50215;
+	--color-accent-active: #941d1b; /* the active-item indicator (sidebar nav, tab underline) */
 	--color-secondary: #ccc;
 	--color-success: #1b9e3e;
 	--color-danger: #e55353;
@@ -206,16 +211,7 @@
 	--color-tab-bg: #f3f3f3; /* inactive tab background */
 	--color-tab-fg: #555; /* inactive tab text */
 
-	/* Header bar (defaults to the brand primary; can be themed separately) */
-	--color-header-bg: var(--color-primary);
-	--color-header-text: var(--color-on-dark);
-	--color-header-hover: #b70212; /* darkened header bg for the mobile toggler hover */
-	--color-header-text-muted: #ddd; /* dimmed header nav-link on hover/focus */
-	--color-header-notification-bg: #333;
-
 	/* Panel headers & dropdown menus (layout) */
-	--color-panel-header-bg: #dee2e5;
-	--color-panel-header-fg: #343a40; /* panel title text */
 	--color-panel-header-btn: #4b545c; /* the round context-help / close button chrome */
 	--color-menu-bg: #f3f4f7; /* context-menu popover background */
 

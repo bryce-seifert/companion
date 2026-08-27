@@ -1,21 +1,21 @@
-import { faAdd, faCog, faSync } from '@fortawesome/free-solid-svg-icons'
+import { faAdd, faGamepad, faSync } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useMutation } from '@tanstack/react-query'
 import { Outlet, useMatchRoute, useNavigate } from '@tanstack/react-router'
+import classnames from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useRef, useState } from 'react'
 import { StaticAlert } from '~/Components/Alert'
 import { Button, ButtonGroup } from '~/Components/Button'
-import { Callout } from '~/Components/Callout'
 import { Grid } from '~/Components/Grid'
 import { useTwoPanelMode } from '~/Hooks/useLayoutMode'
-import { useShowSecondaryPanel } from '~/Hooks/useShowSecondaryPanel'
-import { ContextHelpButton } from '~/Layout/PanelIcons'
+import { PageHeader } from '~/Layout/PageHeader'
 import { MyErrorBoundary } from '~/Resources/Error'
 import { trpc } from '~/Resources/TRPC'
 import { AddEmulatorModal, type AddEmulatorModalRef } from './AddEmulatorModal'
 import { AddSurfaceGroupModal, type AddSurfaceGroupModalRef } from './AddGroupModal'
 import { KnownSurfacesTable } from './KnownSurfacesTable'
+import { SurfacesNav } from './SurfacesNav'
 import { UdevRulesAlert } from './UdevRulesAlert'
 
 export const MainSurfacesPage = observer(function MainSurfacesPage(): React.JSX.Element {
@@ -38,7 +38,7 @@ export const MainSurfacesPage = observer(function MainSurfacesPage(): React.JSX.
 	const refreshUSB = useCallback(() => {
 		setScanError(null)
 
-		rescanUsbMutationAsync() // TODO: 30s timeout?
+		rescanUsbMutationAsync()
 			.then((errorMsg) => {
 				setScanError(errorMsg || null)
 			})
@@ -55,19 +55,6 @@ export const MainSurfacesPage = observer(function MainSurfacesPage(): React.JSX.
 		addGroupModalRef.current?.show()
 	}, [])
 
-	// Handle action when the user clicks the "Show Settings" button
-	const handleShowSettings = useCallback(() => {
-		void navigate({ to: '/surfaces/integrations' })
-	}, [navigate])
-
-	// Handle the various cases in which we want to show the secondary panel in one-panel mode
-	// 1. if one of the integration subpanels are currently visible or user clicked "Show Settings"
-	const showSettings = useShowSecondaryPanel({
-		baseRoute: '/surfaces',
-		secondaryRoute: '/surfaces/integrations',
-	})
-
-	// 2. if editing known-surfaces (aka configured surfaces)
 	const selectKnownSurface = useCallback(
 		(itemId: string | null) => {
 			if (itemId === null || selectedSurfaceId === itemId) {
@@ -84,89 +71,68 @@ export const MainSurfacesPage = observer(function MainSurfacesPage(): React.JSX.
 		[navigate, selectedSurfaceId]
 	)
 
-	// the following constants determine if the panel will actually be shown (previously these only established if it was "allowed" to be shown)
-	const showPrimaryPanel = twoPanelMode || (!selectedSurfaceId && !showSettings)
-	const showSecondaryPanel = twoPanelMode || !!selectedSurfaceId || showSettings
+	const showPrimaryPanel = twoPanelMode || !selectedSurfaceId
+	const showSecondaryPanel = twoPanelMode || !!selectedSurfaceId
 
 	return (
-		<Grid.Row className="surfaces-page split-panels">
-			<Grid.Col
-				xs={twoPanelMode ? 6 : 12}
-				className={`primary-panel ${showPrimaryPanel ? 'flex' : 'hidden'} flex-column-layout`}
-			>
-				<div className="fixed-header">
-					<h4 className="button-inline">
-						Surfaces
-						<ContextHelpButton action="/user-guide/config/surfaces">
-							Use the table, below to configure currently-known surfaces and groups.
-							<br />
-							To configure a surface integration or global setting,
-							{twoPanelMode
-								? ' use the panel to the right.'
-								: '	click the "Show Settings" button on the right, just above the table.'}
-							<br />
-							Click this icon for more help.
-						</ContextHelpButton>
-					</h4>
+		<div className="page-shell">
+			<PageHeader icon={faGamepad} title="Surfaces" helpAction="/user-guide/config/surfaces" />
 
-					<p className="mb-2">
-						Click on any item below to edit the configuration of a currently-known surface or group.
-						<br />
-						If your streamdeck is missing from this list, you might need to close the Elgato Streamdeck application and
-						click the Rescan button below.
-					</p>
+			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+				<SurfacesNav />
 
-					{scanError && (
-						<StaticAlert color="warning" role="alert">
-							{scanError}
-						</StaticAlert>
+				<Grid.Row className="surfaces-page split-panels flex-1 min-h-0 !h-auto">
+					<Grid.Col
+						xs={12}
+						xl={selectedSurfaceId ? 6 : 12}
+						className={classnames('primary-panel h-full min-h-0', showPrimaryPanel ? 'flex' : 'hidden xl:flex')}
+					>
+						<div className="flex flex-col h-full min-h-0 gap-2.5 w-full">
+							{scanError && (
+								<StaticAlert color="warning" role="alert">
+									{scanError}
+								</StaticAlert>
+							)}
+
+							<UdevRulesAlert />
+
+							{/* Top Header Card: Actions & Rescan */}
+							<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex items-center justify-between gap-2 flex-wrap shrink-0">
+								<ButtonGroup>
+									<Button color="primary" size="sm" onClick={refreshUSB}>
+										<FontAwesomeIcon icon={faSync} spin={rescanUsbMutation.isPending} className="me-1.5" />
+										{rescanUsbMutation.isPending ? 'Rescanning USB...' : 'Rescan USB'}
+									</Button>
+									<Button color="secondary" size="sm" onClick={addEmulator}>
+										<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Emulator
+									</Button>
+									<Button color="secondary" size="sm" onClick={addGroup}>
+										<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Group
+									</Button>
+								</ButtonGroup>
+							</div>
+
+							<AddSurfaceGroupModal ref={addGroupModalRef} />
+							<AddEmulatorModal ref={addEmulatorModalRef} />
+
+							{/* Surfaces Table Container */}
+							<div className="flex-1 min-h-0 scrollable-content rounded-md border border-border/70 bg-surface">
+								<KnownSurfacesTable selectedItemId={selectedSurfaceId} selectItem={selectKnownSurface} />
+							</div>
+						</div>
+					</Grid.Col>
+
+					{showSecondaryPanel && (
+						<Grid.Col xs={12} xl={6} className={'secondary-panel h-full min-h-0 block'}>
+							<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden border border-border/70 rounded-lg bg-surface">
+								<MyErrorBoundary>
+									<Outlet />
+								</MyErrorBoundary>
+							</div>
+						</Grid.Col>
 					)}
-
-					<UdevRulesAlert />
-
-					<ButtonGroup>
-						<Button color="warning" size="sm" onClick={refreshUSB}>
-							<FontAwesomeIcon icon={faSync} spin={rescanUsbMutation.isPending} />
-							{rescanUsbMutation.isPending ? ' Checking for new surfaces...' : ' Rescan USB'}
-						</Button>
-						<Button color="primary" size="sm" onClick={addEmulator}>
-							<FontAwesomeIcon icon={faAdd} /> Add Emulator
-						</Button>
-						<Button color="secondary" size="sm" onClick={addGroup}>
-							<FontAwesomeIcon icon={faAdd} /> Add Group
-						</Button>
-					</ButtonGroup>
-
-					<AddSurfaceGroupModal ref={addGroupModalRef} />
-					<AddEmulatorModal ref={addEmulatorModalRef} />
-
-					{!twoPanelMode && (
-						<Button color="info" className="float-right" size="sm" onClick={handleShowSettings}>
-							<FontAwesomeIcon icon={faCog} /> Show Settings
-						</Button>
-					)}
-				</div>
-
-				<KnownSurfacesTable selectedItemId={selectedSurfaceId} selectItem={selectKnownSurface} />
-
-				<div className="fixed-header">
-					<Callout color="info">
-						Did you know, you can connect a Streamdeck from another computer or Raspberry Pi with{' '}
-						<a target="_blank" rel="noreferrer" href="https://l.companion.free/q/YH8dZkH1Q">
-							Companion Satellite
-						</a>
-						?
-					</Callout>
-				</div>
-			</Grid.Col>
-
-			<Grid.Col xs={twoPanelMode ? 6 : 12} className={`secondary-panel ${showSecondaryPanel ? 'block' : 'hidden'}`}>
-				<div className="secondary-panel-simple">
-					<MyErrorBoundary>
-						<Outlet />
-					</MyErrorBoundary>
-				</div>
-			</Grid.Col>
-		</Grid.Row>
+				</Grid.Row>
+			</div>
+		</div>
 	)
 })

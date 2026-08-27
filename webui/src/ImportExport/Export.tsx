@@ -100,12 +100,7 @@ export const ExportWizardModal = observer(function ExportWizardModal() {
 					<Modal.Popup initialFocus={buttonRef}>
 						<Modal.Header closeButton>
 							<Modal.Title>
-								<img
-									src={makeAbsolutePath('/img/icons/48x48.png')}
-									style={{ height: 30 }}
-									alt="logo"
-									className="me-2"
-								/>
+								<img src={makeAbsolutePath('/img/logo-glass.png')} style={{ height: 30 }} alt="logo" className="me-2" />
 								Export Configuration
 							</Modal.Title>
 						</Modal.Header>

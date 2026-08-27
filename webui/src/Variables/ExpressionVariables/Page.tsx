@@ -1,7 +1,8 @@
-import { faAdd, faArrowLeft, faClone, faLayerGroup, faList, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faAdd, faClone, faLayerGroup, faList, faSquareRootVariable, faTrash } from '@fortawesome/free-solid-svg-icons'
 import '../../Components/VariablesTable.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Outlet, useMatchRoute, useNavigate } from '@tanstack/react-router'
+import classnames from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useRef, useState } from 'react'
 import { CreateExpressionVariableControlId, ParseControlId } from '@companion-app/shared/ControlId.js'
@@ -9,7 +10,7 @@ import type {
 	ClientExpressionVariableData,
 	ExpressionVariableCollection,
 } from '@companion-app/shared/Model/ExpressionVariableModel.js'
-import { Button, ButtonGroup, LinkButton } from '~/Components/Button'
+import { Button, ButtonGroup } from '~/Components/Button'
 import { CollectionsNestingTable } from '~/Components/CollectionsNestingTable/CollectionsNestingTable'
 import { CopyButton } from '~/Components/CopyButton'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
@@ -17,10 +18,12 @@ import { Grid } from '~/Components/Grid'
 import { NonIdealState } from '~/Components/NonIdealState.js'
 import { SearchBox } from '~/Components/SearchBox'
 import { PanelCollapseHelperProvider } from '~/Helpers/CollapseHelper'
+import { PageHeader } from '~/Layout/PageHeader.js'
 import { CloseButton, ContextHelpButton } from '~/Layout/PanelIcons'
 import { trpc, useMutationExt } from '~/Resources/TRPC'
 import { useComputed } from '~/Resources/util'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
+import { VariablesNav } from '../VariablesNav.js'
 import { useExpressionVariablesCollectionsApi } from './ExpressionVariablesCollectionsApi'
 import {
 	ExpressionVariablesTableContextProvider,
@@ -118,62 +121,83 @@ export const ExpressionVariablesPage = observer(function ExpressionVariablesPage
 	const showSecondaryPanel = !!selectedVariableId
 
 	return (
-		<Grid.Row className="triggers-page split-panels">
+		<div className="page-shell">
 			<GenericConfirmModal ref={confirmModalRef} />
 
-			<Grid.Col xs={12} xl={6} className={`primary-panel ${showPrimaryPanel ? '' : 'xl:block hidden'}`}>
-				<h4 className="button-inline">
-					Expression Variables
-					<ContextHelpButton action="/user-guide/config/variables#expression-variables" />
-				</h4>
-				<p className="mb-2">Here you can create some variables from live computed expressions</p>
+			<PageHeader
+				icon={faSquareRootVariable}
+				title="Expression Variables"
+				helpAction="/user-guide/config/variables#expression-variables"
+			/>
 
-				<div className="mb-2">
-					<ButtonGroup>
-						<LinkButton color="primary" to="/variables" size="sm">
-							<FontAwesomeIcon icon={faArrowLeft} />
-							&nbsp; Go back
-						</LinkButton>
-						<Button color="warning" onClick={doAddNew} size="sm">
-							<FontAwesomeIcon icon={faAdd} /> Add Expression Variable
-						</Button>
-						<CreateCollectionButton />
-					</ButtonGroup>
+			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+				<VariablesNav activeTab="expression" />
 
-					<SearchBox placeholder="Filter ..." filter={filter} setFilter={setFilter} className="mb-1 mt-2" />
-				</div>
-
-				<PanelCollapseHelperProvider
-					storageId="expression-variable-groups"
-					knownPanelIds={expressionVariablesList.allCollectionIds}
-					defaultCollapsed
-				>
-					<ExpressionVariablesTableContextProvider
-						deleteModalRef={confirmModalRef}
-						selectExpressionVariable={selectExpressionVariable}
+				<Grid.Row className="triggers-page split-panels flex-1 min-h-0 !h-auto">
+					<Grid.Col
+						xs={12}
+						xl={selectedVariableId ? 6 : 12}
+						className={classnames('primary-panel h-full min-h-0', showPrimaryPanel ? 'block' : 'hidden xl:block')}
 					>
-						<CollectionsNestingTable<ExpressionVariableCollection, ExpressionVariableDataWithId>
-							// Heading={ExpressionVariablesListTableHeading}
-							NoContent={ExpressionVariablesListNoContent}
-							ItemRow={ExpressionVariableItemRow}
-							itemName="expression variable"
-							dragId="expression-variable"
-							collectionsApi={expressionVariablesGroupsApi}
-							collections={expressionVariablesList.rootCollections()}
-							items={allExpressionVariables}
-							selectedItemId={selectedVariableId}
-						/>
-					</ExpressionVariablesTableContextProvider>
-				</PanelCollapseHelperProvider>
-			</Grid.Col>
+						<div className="flex flex-col h-full min-h-0 gap-2">
+							{/* Top Header Card: Toolbar & Search */}
+							<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex flex-col gap-2.5 shrink-0">
+								<div className="flex items-center justify-between gap-2 flex-wrap">
+									<ButtonGroup>
+										<Button color="primary" onClick={doAddNew} size="sm">
+											<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Expression Variable
+										</Button>
+										<CreateCollectionButton />
+									</ButtonGroup>
+								</div>
 
-			<Grid.Col xs={12} xl={6} className={`secondary-panel ${showSecondaryPanel ? '' : 'xl:block hidden'}`}>
-				<div className="secondary-panel-simple">
-					{!!selectedVariableId && <ExpressionVariableEditPanelHeading doCloseVariable={doCloseVariable} />}
-					<Outlet />
-				</div>
-			</Grid.Col>
-		</Grid.Row>
+								<SearchBox
+									placeholder="Search expression variables..."
+									filter={filter}
+									setFilter={setFilter}
+									className="w-full h-9"
+								/>
+							</div>
+
+							{/* Expression Variables Table Container */}
+							<div className="flex-1 min-h-0 scrollable-content rounded-md border border-border/70 bg-surface">
+								<PanelCollapseHelperProvider
+									storageId="expression-variable-groups"
+									knownPanelIds={expressionVariablesList.allCollectionIds}
+									defaultCollapsed
+								>
+									<ExpressionVariablesTableContextProvider
+										deleteModalRef={confirmModalRef}
+										selectExpressionVariable={selectExpressionVariable}
+										selectedVariableId={selectedVariableId}
+									>
+										<CollectionsNestingTable<ExpressionVariableCollection, ExpressionVariableDataWithId>
+											NoContent={ExpressionVariablesListNoContent}
+											ItemRow={ExpressionVariableItemRow}
+											itemName="expression variable"
+											dragId="expression-variable"
+											collectionsApi={expressionVariablesGroupsApi}
+											collections={expressionVariablesList.rootCollections()}
+											items={allExpressionVariables}
+											selectedItemId={selectedVariableId}
+										/>
+									</ExpressionVariablesTableContextProvider>
+								</PanelCollapseHelperProvider>
+							</div>
+						</div>
+					</Grid.Col>
+
+					{showSecondaryPanel && (
+						<Grid.Col xs={12} xl={6} className="secondary-panel h-full min-h-0 block">
+							<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden border border-border/70 rounded-lg bg-surface">
+								{!!selectedVariableId && <ExpressionVariableEditPanelHeading doCloseVariable={doCloseVariable} />}
+								<Outlet />
+							</div>
+						</Grid.Col>
+					)}
+				</Grid.Row>
+			</div>
+		</div>
 	)
 })
 
@@ -194,6 +218,7 @@ const ExpressionVariableTableRow = observer(function ExpressionVariableTableRow2
 	item,
 }: ExpressionVariableTableRowProps) {
 	const tableContext = useExpressionVariablesTableContext()
+	const isSelected = tableContext.selectedVariableId === item.id
 
 	const deleteMutation = useMutationExt(trpc.controls.expressionVariables.delete.mutationOptions())
 	const cloneMutation = useMutationExt(trpc.controls.expressionVariables.clone.mutationOptions())
@@ -229,26 +254,40 @@ const ExpressionVariableTableRow = observer(function ExpressionVariableTableRow2
 	const fullname = item.variableName ? `$(expression:${item.variableName})` : null
 
 	return (
-		<div onClick={doEdit} className="flex flex-row items-center gap-2 cursor-pointer">
-			<div className="flex flex-col grow">
+		<div
+			onClick={doEdit}
+			className={classnames(
+				'flex flex-row items-center gap-3 cursor-pointer py-2 px-3 rounded-lg transition-colors hover:bg-surface-muted/50',
+				isSelected
+					? 'bg-primary/10 font-semibold text-primary border-l-4 border-l-primary rounded-l-none'
+					: 'bg-transparent'
+			)}
+		>
+			<div className="flex flex-col grow min-w-0">
 				{fullname ? (
-					<span className="variable-style">
-						{fullname}
+					<span className="variable-style flex items-center gap-1.5 truncate">
+						<span>{fullname}</span>
 						<CopyButton size="sm" title="Copy variable name" color="primary" variant="ghost" text={fullname} />
 					</span>
 				) : (
-					<b>Unnamed</b>
+					<b className="text-sm text-body">Unnamed</b>
 				)}
 
-				<span>{item.description ?? ''}</span>
+				<span className="text-xs text-muted truncate">{item.description ?? ''}</span>
 			</div>
 
-			<div className="action-buttons w-auto">
+			<div className="shrink-0 flex items-center gap-1">
 				<ButtonGroup>
-					<Button onClick={doClone} title="Clone">
+					<Button color="secondary" size="sm" onClick={doClone} title="Clone">
 						<FontAwesomeIcon icon={faClone} />
 					</Button>
-					<Button onClick={doDelete} title="Delete">
+					<Button
+						color="secondary"
+						size="sm"
+						onClick={doDelete}
+						title="Delete"
+						className="text-rose-500 hover:bg-rose-500/10"
+					>
 						<FontAwesomeIcon icon={faTrash} />
 					</Button>
 				</ButtonGroup>
@@ -267,8 +306,8 @@ function CreateCollectionButton() {
 	}, [createMutation])
 
 	return (
-		<Button color="info" size="sm" onClick={doCreateCollection}>
-			<FontAwesomeIcon icon={faLayerGroup} /> Create Collection
+		<Button color="secondary" size="sm" onClick={doCreateCollection}>
+			<FontAwesomeIcon icon={faLayerGroup} className="me-1.5" /> Create Collection
 		</Button>
 	)
 }
@@ -279,9 +318,14 @@ interface ExpressionVariableEditPanelHeadingProps {
 
 function ExpressionVariableEditPanelHeading({ doCloseVariable }: ExpressionVariableEditPanelHeadingProps) {
 	return (
-		<div className="secondary-panel-simple-header">
-			<h4 className="panel-title">Edit Expression variable</h4>
-			<div className="header-buttons">
+		<div className="flex items-center justify-between gap-3 p-3 bg-surface-muted/40 border-b border-border/70 shrink-0">
+			<div className="flex items-center gap-2">
+				<span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-surface-muted text-muted text-xs">
+					<FontAwesomeIcon icon={faSquareRootVariable} />
+				</span>
+				<h3 className="text-sm font-bold text-body mb-0">Edit Expression Variable</h3>
+			</div>
+			<div className="flex items-center gap-1.5">
 				<ContextHelpButton action="/user-guide/config/variables#expression-variables" />
 				<CloseButton closeFn={doCloseVariable} />
 			</div>

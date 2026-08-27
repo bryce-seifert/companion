@@ -1,4 +1,4 @@
-import { faFileExport, faHome, faPencil } from '@fortawesome/free-solid-svg-icons'
+import { faFileExport, faHome, faPencil, faTableCells } from '@fortawesome/free-solid-svg-icons'
 import './ButtonGridPanel.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { observer } from 'mobx-react-lite'
@@ -9,7 +9,7 @@ import { Button } from '~/Components/Button.js'
 import { ConfirmExportModal, type ConfirmExportModalRef } from '~/Components/ConfirmExportModal.js'
 import { Grid } from '~/Components/Grid'
 import { useHasBeenRendered } from '~/Hooks/useHasBeenRendered.js'
-import { ContextHelpButton } from '~/Layout/PanelIcons.js'
+import { PageHeader } from '~/Layout/PageHeader.js'
 import { KeyReceiver, makeAbsolutePath } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { ButtonGridActions, type ButtonGridActionsRef } from './ButtonGridActions.js'
@@ -115,14 +115,7 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 				<ConfirmExportModal ref={exportModalRef} title="Export Page" />
 				<EditPagePropertiesModal ref={editRef} includeName />
 
-				<h4 className="button-inline">
-					Buttons
-					<ContextHelpButton action="/user-guide/config/buttons/" />
-				</h4>
-				<p className="mb-2">
-					The squares below represent each button on your Streamdeck. Click on them to set up how you want them to look,
-					and what they should do when you press or click on them.
-				</p>
+				<PageHeader icon={faTableCells} title="Buttons" helpAction="/user-guide/config/buttons/" />
 
 				<ButtonGridResizePrompt />
 

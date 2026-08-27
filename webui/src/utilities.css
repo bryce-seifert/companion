@@ -17,3 +17,24 @@
 [data-dnd-overlay]:not([data-dnd-dragging]) {
 	display: none !important;
 }
+
+/* Off-scale widths used by list toolbars and table cells. Tailwind has no utility at these sizes
+   and the codebase does not use arbitrary values, so they live here as named utilities. */
+.list-toolbar-search {
+	min-width: 200px;
+}
+
+.list-toolbar-panel {
+	width: 100%;
+}
+
+@media (width >= 40rem) {
+	.list-toolbar-panel {
+		width: auto;
+		min-width: 280px;
+	}
+}
+
+.table-cell-version {
+	max-width: 100px;
+}

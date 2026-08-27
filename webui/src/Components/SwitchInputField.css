@@ -13,12 +13,20 @@
 	cursor: pointer;
 	border-radius: 2em;
 	background-color: var(--color-surface-dark);
-	transition: background-color 0.15s ease-in-out;
+	transition:
+		background-color 0.15s ease-in-out,
+		box-shadow 0.15s ease-in-out;
 	margin: 0.25rem;
 	vertical-align: middle;
 
 	@media (prefers-reduced-motion: reduce) {
 		transition: none;
+	}
+
+	&:hover:not([data-disabled]) {
+		.switch-thumb {
+			transform: translateY(-50%) scale(1.05);
+		}
 	}
 
 	&.switch-input-small {
@@ -39,12 +47,6 @@
 	&[data-checked] {
 		background-color: var(--color-primary);
 
-		/*
-		&.switch-input-dimmed {
-			background-color: var(--color-success);
-		}
-		*/
-
 		.switch-thumb {
 			left: calc(100% - 3px - 16px);
 		}
@@ -58,7 +60,7 @@
 	&:focus-within,
 	&[data-focused] {
 		outline: 0;
-		box-shadow: 0 0 0 0.25rem var(--color-focus-ring);
+		box-shadow: 0 0 0 0.2rem var(--color-focus-ring);
 	}
 
 	.switch-thumb {
@@ -72,7 +74,9 @@
 		border-radius: 50%;
 		background-color: var(--color-surface);
 		box-shadow: 0 1px 3px var(--color-shadow-40);
-		transition: left 0.15s ease-in-out;
+		transition:
+			left 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+			transform 0.15s ease-in-out;
 
 		@media (prefers-reduced-motion: reduce) {
 			transition: none;

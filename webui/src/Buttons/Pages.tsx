@@ -104,12 +104,7 @@ export const PagesList = observer(function PagesList({ setPageNumber }: PagesLis
 	})
 
 	return (
-		<div>
-			<h5>Pages</h5>
-			<p>
-				You can insert, delete, and re-arrange the order of pages here. You can also give each page a unique name to
-				help you identify its purpose.
-			</p>
+		<div className="p-4">
 			<Grid.Row>
 				<Grid.Col xs={12}>
 					<GenericConfirmModal ref={deleteRef} />

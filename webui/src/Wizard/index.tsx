@@ -283,7 +283,7 @@ export const WizardModal = observer(function WizardModal(): React.JSX.Element {
 							<Modal.Header closeButton>
 								<Modal.Title>
 									<img
-										src={makeAbsolutePath('/img/icons/48x48.png')}
+										src={makeAbsolutePath('/img/logo-glass.png')}
 										style={{ height: 30 }}
 										alt="logo"
 										className="me-2"

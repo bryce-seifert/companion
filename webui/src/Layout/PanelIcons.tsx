@@ -10,6 +10,7 @@ import { makeAbsolutePath } from '~/Resources/util'
 interface CloseButtonProps {
 	closeFn: () => void
 	visibilityClass?: string
+	className?: string
 }
 
 export interface ContextHelpButtonProps {
@@ -21,18 +22,21 @@ export interface ContextHelpButtonProps {
 /*
  CloseButton - meant for panels that can be stacked, as in Connections and Surfaces
 */
-export function CloseButton({ closeFn, visibilityClass }: CloseButtonProps): React.JSX.Element {
+export function CloseButton({ closeFn, visibilityClass, className }: CloseButtonProps): React.JSX.Element {
 	return (
-		<Button
-			color="dark"
-			className={`float_right${visibilityClass ? ' ' + visibilityClass : ''} p-1 ms-2 panel-close-button`}
+		<button
+			type="button"
+			className={classNames(
+				'w-7 h-7 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent shrink-0 panel-close-button',
+				visibilityClass,
+				className
+			)}
 			onClick={closeFn}
-			title="Close"
-			aria-label="Close"
+			title="Close panel"
+			aria-label="Close panel"
 		>
-			{/* The inline styling here is to make the icon square */}
-			<FontAwesomeIcon icon={faTimes} />
-		</Button>
+			<FontAwesomeIcon icon={faTimes} className="text-sm" />
+		</button>
 	)
 }
 
@@ -77,19 +81,23 @@ export function ContextHelpButton({ children, action, className }: ContextHelpBu
 					// note: string is currently typed to link to /user-guide/, which is not a Tanstack route
 					<LinkButtonExternal
 						variant="ghost"
-						className="context-help-button-btn p-0"
+						className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-full text-muted hover:text-primary hover:bg-primary/10 transition-all hover:scale-105 align-middle p-0 shrink-0"
 						href={makeAbsolutePath(action)}
 						target="_blank"
 						rel="noopener noreferrer"
 						// onClick={removeFocus}
-						title="Open help in a new tab"
-						aria-label="Open help in a new tab"
+						title="Open help documentation in a new tab"
+						aria-label="Open help documentation in a new tab"
 					>
-						<FontAwesomeIcon icon={faQuestionCircle} aria-label="context help" />
+						<FontAwesomeIcon icon={faQuestionCircle} className="text-xs" aria-label="context help" />
 					</LinkButtonExternal>
 				) : (
-					<Button variant="ghost" className="context-help-button-btn p-0" onClick={onClickAction}>
-						<FontAwesomeIcon icon={faQuestionCircle} aria-label="context help" />
+					<Button
+						variant="ghost"
+						className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-full text-muted hover:text-primary hover:bg-primary/10 transition-all hover:scale-105 align-middle p-0 shrink-0"
+						onClick={onClickAction}
+					>
+						<FontAwesomeIcon icon={faQuestionCircle} className="text-xs" aria-label="context help" />
 					</Button>
 				)}
 			</HelpWrapper>

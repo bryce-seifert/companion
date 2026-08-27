@@ -3,10 +3,8 @@ import type { JsonValue } from 'type-fest'
 import { EntityModelType, FeedbackEntitySubType } from '@companion-app/shared/Model/EntityModel.js'
 import type { TriggerModel, TriggerOptions } from '@companion-app/shared/Model/TriggerModel.js'
 import { StaticAlert } from '~/Components/Alert.js'
-import { Button } from '~/Components/Button'
-import { Form, FormLabel, InputGroup } from '~/Components/Form.js'
+import { Form } from '~/Components/Form.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
-import { Grid } from '~/Components/Grid'
 import { TabArea } from '~/Components/TabArea.js'
 import { TextInputFieldSimple } from '~/Components/TextInputField.js'
 import { ControlNotesEditor } from '~/Controls/ControlNotesEditor.js'
@@ -36,12 +34,12 @@ export function EditTriggerPanel({ controlId }: EditTriggerPanelProps): React.JS
 	const dataReady = !loadError && !!controlConfig
 
 	return (
-		<div className="edit-button-panel flex-form">
+		<div className="flex flex-col flex-1 min-h-0 overflow-hidden">
 			<GenericConfirmModal ref={resetModalRef} />
 
 			<LoadingRetryOrError dataReady={dataReady} error={loadError} doRetry={reloadConfig} design="pulse" />
 			{controlConfig ? (
-				<div style={{ display: dataReady ? '' : 'none' }}>
+				<div className="flex-1 min-h-0 flex flex-col overflow-hidden" style={{ display: dataReady ? '' : 'none' }}>
 					{controlConfig.config.type === 'trigger' ? (
 						<TriggerPanelContent config={controlConfig.config} controlId={controlId} />
 					) : (
@@ -67,22 +65,18 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 	const [activeTab, setActiveTab] = useLocalStorage('triggerEditor.activeTab', 'events')
 
 	return (
-		<>
+		<div className="flex-1 min-h-0 overflow-y-auto p-2.5 space-y-2">
 			<MyErrorBoundary>
 				<TriggerConfig options={config.options} controlId={controlId} />
 			</MyErrorBoundary>
 
-			<MyErrorBoundary>
-				<ControlNotesEditor controlId={controlId} notes={config.options.notes} />
-			</MyErrorBoundary>
-
-			<div className="sticky-tabs">
+			<div className="sticky top-0 bg-surface z-10 border-b border-border py-1 -mx-2.5 px-2.5">
 				<TabArea.Root value={activeTab} onValueChange={setActiveTab}>
 					<TabArea.List>
-						<TabArea.Tab value="events">Events</TabArea.Tab>
-						<TabArea.Tab value="conditions">Conditions</TabArea.Tab>
-						<TabArea.Tab value="actions">Actions</TabArea.Tab>
-						<TabArea.Tab value="variables">Local Variables</TabArea.Tab>
+						<TabArea.Tab value="events">Events ({config.events.length})</TabArea.Tab>
+						<TabArea.Tab value="conditions">Conditions ({config.condition.length})</TabArea.Tab>
+						<TabArea.Tab value="actions">Actions ({config.actions.length})</TabArea.Tab>
+						<TabArea.Tab value="variables">Local Variables ({config.localVariables.length})</TabArea.Tab>
 						<TabArea.Indicator />
 					</TabArea.List>
 				</TabArea.Root>
@@ -91,8 +85,7 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 			{activeTab === 'events' && (
 				<MyErrorBoundary>
 					<TriggerEventEditor
-						heading="Events"
-						subheading={<div className="mb-2">This trigger will be executed when any of the events happens</div>}
+						heading=""
 						controlId={controlId}
 						events={config.events}
 						localVariablesStore={localVariablesStore}
@@ -103,9 +96,7 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 			{activeTab === 'conditions' && (
 				<MyErrorBoundary>
 					<ControlEntitiesEditor
-						className="mt-2"
-						heading="Conditions"
-						subheading={<div className="mb-2">Only execute when all of these conditions are true</div>}
+						heading=""
 						controlId={controlId}
 						entities={config.condition}
 						listId="feedbacks"
@@ -122,9 +113,7 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 			{activeTab === 'actions' && (
 				<MyErrorBoundary>
 					<ControlEntitiesEditor
-						className="mt-2"
-						heading="Actions"
-						subheading={<div className="mb-2">What should happen when executed</div>}
+						heading=""
 						controlId={controlId}
 						location={undefined}
 						listId="trigger_actions"
@@ -141,7 +130,7 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 			{activeTab === 'variables' && (
 				<MyErrorBoundary>
 					<LocalVariablesEditor
-						className="mt-2"
+						className="mt-1"
 						controlId={controlId}
 						location={undefined}
 						variables={config.localVariables}
@@ -149,7 +138,7 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 					/>
 				</MyErrorBoundary>
 			)}
-		</>
+		</div>
 	)
 }
 
@@ -163,7 +152,6 @@ function TriggerConfig({ controlId, options }: TriggerConfigProps) {
 
 	const setValueInner = useCallback(
 		(key: string, value: JsonValue) => {
-			console.log('set', controlId, key, value)
 			setOptionsFieldMutation
 				.mutateAsync({
 					controlId,
@@ -182,30 +170,15 @@ function TriggerConfig({ controlId, options }: TriggerConfigProps) {
 	const nameFieldId = useId()
 
 	return (
-		<Grid.Col sm={12} className="p-0">
-			<Form onSubmit={PreventDefaultHandler} className="row flex-form">
-				<Grid.Col xs={12}>
-					<FormLabel htmlFor={nameFieldId}>Name</FormLabel>
-					<br />
-					<InputGroup>
-						<TextInputFieldSimple id={nameFieldId} setValue={setName} value={options.name} />
-						<TestActionsButton controlId={controlId} hidden={!options} />
-					</InputGroup>
-				</Grid.Col>
-			</Form>
-		</Grid.Col>
-	)
-}
-
-function TestActionsButton({ controlId, hidden }: { controlId: string; hidden: boolean }): React.JSX.Element {
-	const testActionsMutation = useMutationExt(trpc.controls.triggers.testActions.mutationOptions())
-
-	const hotPressDown = useCallback(() => {
-		testActionsMutation.mutateAsync({ controlId }).catch((e) => console.error(`Hot press failed: ${e}`))
-	}, [testActionsMutation, controlId])
-	return (
-		<Button color="warning" hidden={hidden} onMouseDown={hotPressDown}>
-			Test actions
-		</Button>
+		<Form onSubmit={PreventDefaultHandler} className="space-y-1.5">
+			<TextInputFieldSimple
+				id={nameFieldId}
+				setValue={setName}
+				value={options.name}
+				placeholder="Trigger Name..."
+				className="h-9 font-medium text-sm"
+			/>
+			<ControlNotesEditor controlId={controlId} notes={options.notes} multiline={true} />
+		</Form>
 	)
 }

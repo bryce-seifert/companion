@@ -77,23 +77,25 @@ export const TriggerEventEditor = observer(function TriggerEventEditor({
 		<>
 			<GenericConfirmModal ref={confirmModal} />
 
-			<h5 className="mt-2">
-				{heading}
-				{events.length > 1 && (
-					<ButtonGroup className="float-right">
-						{panelCollapseHelper.canExpandAll() && (
-							<Button size="sm" onClick={panelCollapseHelper.setAllExpanded} title="Expand all events">
-								<FontAwesomeIcon icon={faExpandArrowsAlt} />
-							</Button>
-						)}
-						{panelCollapseHelper.canCollapseAll() && (
-							<Button size="sm" onClick={panelCollapseHelper.setAllCollapsed} title="Collapse all events">
-								<FontAwesomeIcon icon={faCompressArrowsAlt} />
-							</Button>
-						)}
-					</ButtonGroup>
-				)}
-			</h5>
+			{heading && (
+				<h5 className="mt-2">
+					{heading}
+					{events.length > 1 && (
+						<ButtonGroup className="float-right">
+							{panelCollapseHelper.canExpandAll() && (
+								<Button size="sm" onClick={panelCollapseHelper.setAllExpanded} title="Expand all events">
+									<FontAwesomeIcon icon={faExpandArrowsAlt} />
+								</Button>
+							)}
+							{panelCollapseHelper.canCollapseAll() && (
+								<Button size="sm" onClick={panelCollapseHelper.setAllCollapsed} title="Collapse all events">
+									<FontAwesomeIcon icon={faCompressArrowsAlt} />
+								</Button>
+							)}
+						</ButtonGroup>
+					)}
+				</h5>
+			)}
 			{subheading}
 
 			<div className="entity-list">

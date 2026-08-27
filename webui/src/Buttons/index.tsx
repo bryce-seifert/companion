@@ -392,88 +392,90 @@ export const ButtonsPage = observer(function ButtonsPage() {
 	)
 
 	return (
-		<Grid.Row className="buttons-page split-panels">
-			<GenericConfirmModal ref={clearModalRef} />
-			<ContextMenu
-				open={contextMenuOpen}
-				onOpenChange={setContextMenuOpen}
-				position={contextMenuPosition}
-				menuItems={contextMenuItems}
-			/>
+		<div className="flex flex-col h-full overflow-hidden">
+			<Grid.Row className="buttons-page split-panels grow min-h-0 h-full">
+				<GenericConfirmModal ref={clearModalRef} />
+				<ContextMenu
+					open={contextMenuOpen}
+					onOpenChange={setContextMenuOpen}
+					position={contextMenuPosition}
+					menuItems={contextMenuItems}
+				/>
 
-			{/* On large screens, show the grid in its own column */}
-			{isLargeScreen && (
-				<Grid.Col xs={12} xl={6} className="primary-panel">
-					{gridPanel}
-				</Grid.Col>
-			)}
+				{/* On large screens, show the grid in its own column */}
+				{isLargeScreen && (
+					<Grid.Col xs={12} xl={6} className="primary-panel h-full min-h-0">
+						{gridPanel}
+					</Grid.Col>
+				)}
 
-			<Grid.Col xs={12} xl={6} className="secondary-panel">
-				<div className="secondary-panel-inner">
-					<TabArea.Root value={activeTab} onValueChange={setActiveTab}>
-						<TabArea.List>
-							{!isLargeScreen && (
-								<TabArea.Tab value="grid">
-									<FontAwesomeIcon icon={faThLarge} /> Buttons
-								</TabArea.Tab>
-							)}
-							{selectedButton && (
-								<TabArea.Tab value="edit">
-									<FontAwesomeIcon icon={faCalculator} /> Edit Button{' '}
-									{selectedButton ? `${formatLocation(selectedButton)}` : '?'}
-								</TabArea.Tab>
-							)}
-							<TabArea.Tab value="pages">
-								<FontAwesomeIcon icon={faLayerGroup} /> Pages
-							</TabArea.Tab>
-							<TabArea.Tab value="page-variables">
-								<FontAwesomeIcon icon={faDollarSign} /> Page Variables
-							</TabArea.Tab>
-							<TabArea.Tab value="presets">
-								<FontAwesomeIcon icon={faGift} /> Presets
-							</TabArea.Tab>
-							<TabArea.Tab value="action-recorder">
-								<FontAwesomeIcon icon={faVideoCamera} /> Recorder
-							</TabArea.Tab>
-						</TabArea.List>
-
-						{/* On small screens, show the grid in its own tab */}
-						{!isLargeScreen && <TabArea.Panel value="grid">{gridPanel}</TabArea.Panel>}
-						<TabArea.Panel value="edit">
-							<MyErrorBoundary>
-								{selectedButton && (
-									<EditButton
-										key={`${formatLocation(selectedButton)}-${tabResetToken}`}
-										location={selectedButton}
-										onKeyUp={handleKeyDownInButtons}
-										navigateToControl={navigateToControl}
-									/>
+				<Grid.Col xs={12} xl={6} className="secondary-panel h-full min-h-0">
+					<div className="secondary-panel-inner h-full min-h-0 flex flex-col overflow-hidden">
+						<TabArea.Root value={activeTab} onValueChange={setActiveTab}>
+							<TabArea.List>
+								{!isLargeScreen && (
+									<TabArea.Tab value="grid">
+										<FontAwesomeIcon icon={faThLarge} /> Buttons
+									</TabArea.Tab>
 								)}
-							</MyErrorBoundary>
-						</TabArea.Panel>
-						<TabArea.Panel value="pages">
-							<MyErrorBoundary>
-								<PagesList setPageNumber={setPageNumber} />
-							</MyErrorBoundary>
-						</TabArea.Panel>
-						<TabArea.Panel value="page-variables">
-							<MyErrorBoundary>
-								<PageVariablesPanel pageNumber={pageNumber} />
-							</MyErrorBoundary>
-						</TabArea.Panel>
-						<TabArea.Panel value="presets">
-							<MyErrorBoundary>
-								<ConnectionPresets resetToken={tabResetToken} />
-							</MyErrorBoundary>
-						</TabArea.Panel>
-						<TabArea.Panel value="action-recorder" className="pt-0">
-							<MyErrorBoundary>
-								<ActionRecorder />
-							</MyErrorBoundary>
-						</TabArea.Panel>
-					</TabArea.Root>
-				</div>
-			</Grid.Col>
-		</Grid.Row>
+								{selectedButton && (
+									<TabArea.Tab value="edit">
+										<FontAwesomeIcon icon={faCalculator} /> Edit Button{' '}
+										{selectedButton ? `${formatLocation(selectedButton)}` : '?'}
+									</TabArea.Tab>
+								)}
+								<TabArea.Tab value="pages">
+									<FontAwesomeIcon icon={faLayerGroup} /> Pages
+								</TabArea.Tab>
+								<TabArea.Tab value="page-variables">
+									<FontAwesomeIcon icon={faDollarSign} /> Page Variables
+								</TabArea.Tab>
+								<TabArea.Tab value="presets">
+									<FontAwesomeIcon icon={faGift} /> Presets
+								</TabArea.Tab>
+								<TabArea.Tab value="action-recorder">
+									<FontAwesomeIcon icon={faVideoCamera} /> Recorder
+								</TabArea.Tab>
+							</TabArea.List>
+
+							{/* On small screens, show the grid in its own tab */}
+							{!isLargeScreen && <TabArea.Panel value="grid">{gridPanel}</TabArea.Panel>}
+							<TabArea.Panel value="edit">
+								<MyErrorBoundary>
+									{selectedButton && (
+										<EditButton
+											key={`${formatLocation(selectedButton)}-${tabResetToken}`}
+											location={selectedButton}
+											onKeyUp={handleKeyDownInButtons}
+											navigateToControl={navigateToControl}
+										/>
+									)}
+								</MyErrorBoundary>
+							</TabArea.Panel>
+							<TabArea.Panel value="pages">
+								<MyErrorBoundary>
+									<PagesList setPageNumber={setPageNumber} />
+								</MyErrorBoundary>
+							</TabArea.Panel>
+							<TabArea.Panel value="page-variables">
+								<MyErrorBoundary>
+									<PageVariablesPanel pageNumber={pageNumber} />
+								</MyErrorBoundary>
+							</TabArea.Panel>
+							<TabArea.Panel value="presets">
+								<MyErrorBoundary>
+									<ConnectionPresets resetToken={tabResetToken} />
+								</MyErrorBoundary>
+							</TabArea.Panel>
+							<TabArea.Panel value="action-recorder" className="pt-0">
+								<MyErrorBoundary>
+									<ActionRecorder />
+								</MyErrorBoundary>
+							</TabArea.Panel>
+						</TabArea.Root>
+					</div>
+				</Grid.Col>
+			</Grid.Row>
+		</div>
 	)
 })

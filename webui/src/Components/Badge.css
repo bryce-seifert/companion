@@ -1,0 +1,31 @@
+/* Pill-shaped status badge, shared by the instance/connection lists, the module tables and the
+   connection edit panel. The per-tone colours are applied as utilities by Badge.tsx; this holds the
+   shape/typography that every tone has in common. */
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.375rem;
+	min-width: 70px;
+	padding: 0.125rem 0.625rem;
+	border-radius: 9999px;
+	border: 1px solid transparent;
+	font-size: 0.75rem;
+	font-weight: 500;
+	white-space: nowrap;
+	user-select: none;
+}
+
+/* The small solid dot some badges lead with. */
+.status-badge-dot {
+	flex-shrink: 0;
+	width: 0.375rem;
+	height: 0.375rem;
+	border-radius: 9999px;
+}
+
+/* The spinner some badges use in place of the dot. */
+.status-badge-spinner {
+	width: 10px;
+	height: 10px;
+}

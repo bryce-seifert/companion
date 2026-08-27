@@ -1,17 +1,18 @@
-import { faFileExport } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faClipboardList, faDownload, faFileExport, faTrash } from '@fortawesome/free-solid-svg-icons'
 import './log.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useSubscription } from '@trpc/tanstack-react-query'
+import classNames from 'classnames'
 import dayjs from 'dayjs'
 import { nanoid } from 'nanoid'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ClientLogLine } from '@companion-app/shared/Model/LogLine.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
-import { Grid } from '~/Components/Grid'
 import { safeSetLocalStorage } from '~/Helpers/SafeStorage.js'
 import { useStickyScroll } from '~/Hooks/useStickyScroll.js'
+import { PageHeader } from '~/Layout/PageHeader.js'
 import { assertNever, makeAbsolutePath } from '~/Resources/util.js'
 import { Button, ButtonGroup, LinkButtonExternal } from './Components/Button'
 import { trpc, useMutationExt } from './Resources/TRPC'
@@ -70,45 +71,59 @@ export const LogPanel = memo(function LogPanel() {
 	return (
 		<>
 			<GenericConfirmModal ref={exportRef} />
-			<div className="log-page">
-				<Grid.Row>
-					<Grid.Col lg={12} className="px-4">
+			<div className="page-shell">
+				<PageHeader icon={faClipboardList} title="System Log" helpAction="/user-guide/log" />
+
+				{/* Top Header Card: Filters & Actions */}
+				<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex items-center justify-between gap-3 flex-wrap shrink-0">
+					<div className="flex items-center gap-2">
+						<span className="text-xs font-semibold text-body me-1">Levels:</span>
 						<ButtonGroup>
-							<Button color="warning" size="sm" onClick={doToggleWarn} variant={config.warn ? undefined : 'outline'}>
+							<Button color="warning" size="sm" variant={config.warn ? undefined : 'outline'} onClick={doToggleWarn}>
+								{config.warn && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
 								Warning
 							</Button>
-							<Button color="info" size="sm" onClick={doToggleInfo} variant={config.info ? undefined : 'outline'}>
+							<Button color="info" size="sm" variant={config.info ? undefined : 'outline'} onClick={doToggleInfo}>
+								{config.info && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
 								Info
 							</Button>
 							<Button
 								color="secondary"
 								size="sm"
-								onClick={doToggleDebug}
 								variant={config.debug ? undefined : 'outline'}
+								onClick={doToggleDebug}
 							>
+								{config.debug && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
 								Debug
 							</Button>
 						</ButtonGroup>
+					</div>
 
-						<div className="float-right">
-							<Button color="primary" size="sm" onClick={doClearLog}>
-								Clear log
-							</Button>
-							<LinkButtonExternal color="light" className="ms-2" size="sm" href={makeAbsolutePath(`/int/export/log`)}>
-								<FontAwesomeIcon icon={faFileExport} /> Export log
-							</LinkButtonExternal>
-							<Button color="light" className="ms-2" onClick={exportSupportModal} size="sm">
-								<FontAwesomeIcon icon={faFileExport} /> Export support bundle
-							</Button>
-						</div>
-					</Grid.Col>
-				</Grid.Row>
+					<div className="flex items-center gap-2">
+						<Button color="secondary" size="sm" onClick={doClearLog} title="Clear log history">
+							<FontAwesomeIcon icon={faTrash} className="me-1.5" />
+							Clear Log
+						</Button>
+						<LinkButtonExternal
+							color="secondary"
+							size="sm"
+							href={makeAbsolutePath('/int/export/log')}
+							title="Download log file"
+						>
+							<FontAwesomeIcon icon={faFileExport} className="me-1.5" />
+							Export Log
+						</LinkButtonExternal>
+						<Button color="secondary" size="sm" onClick={exportSupportModal} title="Download support diagnostic bundle">
+							<FontAwesomeIcon icon={faDownload} className="me-1.5" />
+							Support Bundle
+						</Button>
+					</div>
+				</div>
 
-				<Grid.Row className="log-panel">
-					<Grid.Col lg={12} className="overflow-hidden h-full w-full">
-						<LogPanelContents config={config} />
-					</Grid.Col>
-				</Grid.Row>
+				{/* Log Content Terminal Window */}
+				<div className="flex-1 min-h-0 bg-surface rounded-lg border border-border/70 shadow-xs overflow-hidden flex flex-col p-2">
+					<LogPanelContents config={config} />
+				</div>
 			</div>
 		</>
 	)
@@ -190,7 +205,7 @@ function LogPanelContents({ config }: LogPanelContentsProps) {
 	const virtualizer = useVirtualizer({
 		count: count,
 		getScrollElement: () => parentRef.current,
-		estimateSize: () => 18,
+		estimateSize: () => 24,
 		overscan: 5,
 	})
 
@@ -217,12 +232,7 @@ function LogPanelContents({ config }: LogPanelContentsProps) {
 					}}
 				>
 					{items.map((virtualRow) => (
-						<div
-							key={virtualRow.key}
-							data-index={virtualRow.index}
-							ref={virtualizer.measureElement}
-							className={virtualRow.index % 2 ? 'ListItemOdd' : 'ListItemEven'}
-						>
+						<div key={virtualRow.key} data-index={virtualRow.index} ref={virtualizer.measureElement}>
 							<LogLineInner line={virtualRow.index === 0 ? infoLine : messages[virtualRow.index - 1]} />
 						</div>
 					))}
@@ -236,10 +246,52 @@ interface LogLineInnerProps {
 	line: ClientLogLineExt
 }
 const LogLineInner = memo(({ line }: LogLineInnerProps) => {
-	const time_format = line.time === null ? '                     ' : dayjs(line.time).format('YY.MM.DD HH:mm:ss.SSS')
+	const time_format = line.time === null ? '' : dayjs(line.time).format('YYYY-MM-DD HH:mm:ss.SSS')
+
+	let levelBadge = null
+	let lineBgColor = 'bg-transparent'
+
+	if (line.level === 'error' || line.level === 'fatal') {
+		levelBadge = (
+			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-rose-500/20 text-rose-500 border border-rose-500/30 shrink-0 select-none">
+				ERROR
+			</span>
+		)
+		lineBgColor = 'bg-rose-500/10 border-rose-500/20'
+	} else if (line.level === 'warn') {
+		levelBadge = (
+			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 select-none">
+				WARN
+			</span>
+		)
+		lineBgColor = 'bg-amber-500/10 border-amber-500/20'
+	} else if (line.level === 'info') {
+		levelBadge = (
+			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/30 shrink-0 select-none">
+				INFO
+			</span>
+		)
+		lineBgColor = 'bg-sky-500/10 border-sky-500/20'
+	} else if (line.level === 'debug') {
+		levelBadge = (
+			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-zinc-500/15 text-zinc-400 border border-zinc-500/20 shrink-0 select-none">
+				DEBUG
+			</span>
+		)
+		lineBgColor = 'bg-transparent'
+	}
+
 	return (
-		<div className={`log-line log-type-${line.level}`}>
-			{time_format} <strong>{line.source}</strong>: <span className="log-message">{line.message}</span>
+		<div
+			className={classNames(
+				'flex items-start gap-2 py-1 px-2.5 rounded transition-colors text-xs font-mono border border-transparent my-0.5 leading-relaxed',
+				lineBgColor
+			)}
+		>
+			{time_format && <span className="text-muted shrink-0 select-none text-2xs">{time_format}</span>}
+			{levelBadge}
+			<span className="font-semibold text-body shrink-0">{line.source}:</span>
+			<span className="text-body break-words min-w-0 flex-1">{line.message}</span>
 		</div>
 	)
 })

@@ -1,11 +1,23 @@
 .collections-nesting-table {
 	border: 1px solid var(--color-border);
-	border-collapse: collapse;
-	box-shadow: 0px 2px 21px -10px var(--color-shadow-20);
+	border-radius: 0.75rem;
+	overflow: hidden;
+	border-collapse: separate;
+	border-spacing: 0;
+	box-shadow: 0 4px 12px var(--color-shadow-10);
 
 	--collection-nesting-level: 0;
 
-	.collections-nesting-table-header,
+	.collections-nesting-table-header {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		background-color: var(--color-surface-muted);
+		padding: 10px 14px;
+		border-bottom: 1px solid var(--color-border);
+		box-shadow: 0 4px 12px -2px var(--color-shadow-15);
+	}
+
 	.collections-nesting-table-ungrouped-header {
 		background-color: var(--color-surface-muted);
 		padding: 6px 10px;
