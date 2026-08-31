@@ -15,6 +15,7 @@ import {
 import { VariablesTable } from '~/Components/VariablesTable.js'
 import { usePanelCollapseHelper } from '~/Helpers/CollapseHelper.js'
 import { PageHeader } from '~/Layout/PageHeader'
+import { PageIntro } from '~/Layout/PageIntro'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { VariablesNav } from './VariablesNav.js'
 
@@ -90,12 +91,9 @@ export const ConnectionVariablesPage = observer(function VariablesConnectionList
 				<VariablesNav activeTab="connections" />
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
-					<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-3">
-						<h4 className="text-base font-bold text-body mb-1">Connection Variables</h4>
-						<p className="text-xs text-muted mb-0">
-							Select a active module connection below to inspect its live dynamic variables.
-						</p>
-					</div>
+					<PageIntro title="Connection Variables">
+						Select a active module connection below to inspect its live dynamic variables.
+					</PageIntro>
 
 					<div className="rounded-lg border border-border/70 bg-surface p-3">
 						<CollapsibleTree

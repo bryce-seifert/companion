@@ -31,7 +31,7 @@ export const ModuleVersionsRefresh = observer(function ModuleVersionsRefresh({
 			<button
 				type="button"
 				onClick={doRefreshModules}
-				className="w-6 h-6 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent"
+				className="panel-icon-button panel-icon-button-sm"
 				title="Refresh module info & versions"
 				aria-label="Refresh module info & versions"
 			>

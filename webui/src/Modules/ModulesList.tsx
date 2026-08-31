@@ -334,12 +334,7 @@ const ModulesListRow = observer(function ModulesListRow({
 			</td>
 			<td className="compact py-2 px-3 text-end w-12">
 				{moduleInfo.helpUrl && (
-					<button
-						type="button"
-						onClick={doShowHelp}
-						className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent"
-						title="Show documentation"
-					>
+					<button type="button" onClick={doShowHelp} className="panel-icon-button" title="Show documentation">
 						<FontAwesomeIcon icon={faQuestionCircle} className="text-xs" />
 					</button>
 				)}

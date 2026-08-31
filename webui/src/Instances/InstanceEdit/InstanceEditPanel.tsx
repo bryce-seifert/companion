@@ -10,6 +10,7 @@ import type { ClientModuleInfo } from '@companion-app/shared/Model/ModuleInfo.js
 import type { SomeCompanionInputField } from '@companion-app/shared/Model/Options.js'
 import { capitalize } from '@companion-app/shared/Util.js'
 import { DismissableAlert, StaticAlert } from '~/Components/Alert.js'
+import { Badge } from '~/Components/Badge'
 import { Button } from '~/Components/Button.js'
 import { SimpleDropdownInputField } from '~/Components/DropdownInputFieldSimple.js'
 import { Form, FormLabel } from '~/Components/Form.js'
@@ -486,10 +487,9 @@ const InstanceFormButtons = observer(function InstanceFormButtons<TConfig extend
 		<div className="shrink-0 bg-surface border-t border-border px-4 py-3 z-10 flex items-center justify-between gap-3 shadow-lg">
 			<div className="flex items-center gap-2">
 				{isDirty ? (
-					<span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 select-none">
-						<span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+					<Badge tone="warning" dot className="select-none">
 						Unsaved Changes
-					</span>
+					</Badge>
 				) : (
 					<span className="text-xs text-muted select-none">All changes saved</span>
 				)}

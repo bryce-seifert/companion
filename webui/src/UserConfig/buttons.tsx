@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { memo } from 'react'
 import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { PageIntro } from '~/Layout/PageIntro'
 import { useUserConfigProps } from './Context.js'
 import { ButtonsConfig } from './Sections/ButtonsConfig.js'
 import { GridConfigRows } from './Sections/GridConfig.js'
@@ -18,12 +19,9 @@ export const SettingsButtonsPage = memo(function UserConfig() {
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
 					<div className="primary-panel">
-						<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-3">
-							<h4 className="text-base font-bold text-body mb-1">Button Settings</h4>
-							<p className="text-xs text-muted mb-0">
-								Configure button behavior, default press actions, grid dimensions, and surface controls.
-							</p>
-						</div>
+						<PageIntro title="Button Settings">
+							Configure button behavior, default press actions, grid dimensions, and surface controls.
+						</PageIntro>
 						<UserConfigTable />
 					</div>
 				</div>

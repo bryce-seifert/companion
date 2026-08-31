@@ -28,23 +28,6 @@ export const InstanceTableStatusCell = observer(function InstanceTableStatusCell
 			? status.message || ''
 			: JSON.stringify(status.message))
 
-	const levelStr =
-		status?.level ||
-		(status?.category === 'error'
-			? 'Error'
-			: status?.category === 'warning'
-				? 'Warning'
-				: status?.category === 'good'
-					? 'OK'
-					: 'Connecting')
-
-	const hasExtraDetails = !!messageStr && messageStr !== levelStr
-	const helpText = hasExtraDetails ? `${levelStr}: ${messageStr}` : levelStr || messageStr || 'Connecting'
-
-	const infoBadge = hasExtraDetails ? (
-		<FontAwesomeIcon icon={faInfoCircle} className="text-2xs opacity-70 shrink-0 ms-0.5" />
-	) : null
-
 	const isConnecting = !status?.category || (status.category === 'error' && status.level === 'Connecting')
 
 	let tone: BadgeTone
@@ -57,12 +40,6 @@ export const InstanceTableStatusCell = observer(function InstanceTableStatusCell
 	} else if (status.category === 'good') {
 		tone = 'good'
 		label = 'OK'
-		indicator = (
-			<span className="relative flex h-2 w-2 shrink-0">
-				<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-				<span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-			</span>
-		)
 	} else if (status.category === 'warning') {
 		tone = 'warning'
 		label = status.level || 'Warning'
@@ -71,11 +48,22 @@ export const InstanceTableStatusCell = observer(function InstanceTableStatusCell
 		label = status.level || 'Error'
 	}
 
-	return (
-		<InlineHelpCustom help={helpText}>
+	// Only the rows with something more to say get a tooltip: the label is already on screen, and a
+	// tooltip per row is a floating-state machine per row.
+	const hasExtraDetails = !!messageStr && messageStr !== label
+	if (!hasExtraDetails) {
+		return (
 			<Badge tone={tone} dot indicator={indicator}>
 				<span>{label}</span>
-				{infoBadge}
+			</Badge>
+		)
+	}
+
+	return (
+		<InlineHelpCustom help={`${label}: ${messageStr}`}>
+			<Badge tone={tone} dot indicator={indicator}>
+				<span>{label}</span>
+				<FontAwesomeIcon icon={faInfoCircle} className="text-2xs opacity-70 shrink-0 ms-0.5" />
 			</Badge>
 		</InlineHelpCustom>
 	)

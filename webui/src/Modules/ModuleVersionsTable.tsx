@@ -261,7 +261,7 @@ const ModuleVersionRow = observer(function ModuleVersionRow({
 						<button
 							type="button"
 							onClick={doShowHelp}
-							className="w-6 h-6 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent"
+							className="panel-icon-button panel-icon-button-sm"
 							title="Show documentation"
 						>
 							<FontAwesomeIcon icon={faQuestionCircle} className="text-xs" />

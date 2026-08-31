@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { memo } from 'react'
 import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { PageIntro } from '~/Layout/PageIntro'
 import { useUserConfigProps } from './Context.js'
 import { CompanionConfig } from './Sections/CompanionConfig.js'
 import { DataCollectionConfig } from './Sections/DataCollection.js'
@@ -18,12 +19,9 @@ export const SettingsGeneralPage = memo(function UserConfig() {
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
 					<div className="primary-panel">
-						<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-3">
-							<h4 className="text-base font-bold text-body mb-1">General Settings</h4>
-							<p className="text-xs text-muted mb-0">
-								All setting modifications apply instantaneously across Companion.
-							</p>
-						</div>
+						<PageIntro title="General Settings">
+							All setting modifications apply instantaneously across Companion.
+						</PageIntro>
 						<UserConfigTable />
 					</div>
 				</div>

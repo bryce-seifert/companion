@@ -480,7 +480,7 @@ const AddInstanceConfigureStep = observer(function AddInstanceConfigureStep({
 				<div className="flex items-center justify-between gap-3">
 					<div>
 						<div className="flex items-center gap-2 mb-1">
-							<span className="px-2 py-0.5 rounded text-2xs font-semibold bg-primary/10 text-primary border border-primary/20">
+							<span className="module-type-chip">
 								New {service.moduleType === ModuleInstanceType.Connection ? 'Connection' : 'Surface'}
 							</span>
 							<span className="text-xs text-muted font-medium font-mono">{moduleInfo.moduleId}</span>

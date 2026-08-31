@@ -1,3 +1,5 @@
+@import '../breakpoints.css'; /* makes @custom-media (--bp-*) resolvable in this file */
+
 .surfaces-tab-content {
 	display: grid;
 	grid-auto-flow: row;
@@ -140,7 +142,7 @@
 	}
 
 	/* Responsive design for smaller screens */
-	@media (max-width: 768px) {
+	@media (--bp-md-down) {
 		.grid-cell {
 			padding: 4px 6px;
 			font-size: 0.875rem;

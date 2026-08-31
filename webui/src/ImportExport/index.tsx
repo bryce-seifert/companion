@@ -7,6 +7,7 @@ import { BANNED_PROPS } from '@companion-app/shared/Expressions.js'
 import type { ClientImportObject } from '@companion-app/shared/Model/ImportExport.js'
 import { StaticAlert } from '~/Components/Alert.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { PageIntro } from '~/Layout/PageIntro'
 import { trpc, useMutationExt } from '~/Resources/TRPC.js'
 import { base64EncodeUint8Array } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
@@ -167,12 +168,9 @@ export const ImportExportPage = observer(function ImportExport() {
 			<PageHeader icon={faFileImport} title="Import / Export" helpAction="/user-guide/config/import-export" />
 
 			<div className="flex-1 min-h-0 overflow-y-auto">
-				<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-4">
-					<h4 className="text-base font-bold text-body mb-1">Configuration Management</h4>
-					<p className="text-xs text-muted mb-0">
-						Export custom configuration backups, restore from a snapshot, or reset Companion configuration.
-					</p>
-				</div>
+				<PageIntro title="Configuration Management">
+					Export custom configuration backups, restore from a snapshot, or reset Companion configuration.
+				</PageIntro>
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					{/* Export Card */}

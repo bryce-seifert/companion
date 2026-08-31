@@ -26,11 +26,7 @@ export function CloseButton({ closeFn, visibilityClass, className }: CloseButton
 	return (
 		<button
 			type="button"
-			className={classNames(
-				'w-7 h-7 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent shrink-0 panel-close-button',
-				visibilityClass,
-				className
-			)}
+			className={classNames('panel-icon-button panel-close-button', visibilityClass, className)}
 			onClick={closeFn}
 			title="Close panel"
 			aria-label="Close panel"

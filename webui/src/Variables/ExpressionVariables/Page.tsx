@@ -131,7 +131,6 @@ export const ExpressionVariablesPage = observer(function ExpressionVariablesPage
 
 			<SplitPanels.Root
 				showing={selectedVariableId ? 'secondary' : 'primary'}
-				className="triggers-page"
 				resize={{ storageKey: 'expression-variables' }}
 			>
 				<SplitPanels.Primary>

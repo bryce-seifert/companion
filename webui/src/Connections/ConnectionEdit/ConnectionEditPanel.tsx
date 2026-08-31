@@ -8,6 +8,7 @@ import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useMemo, useRef, useState } from 'react'
 import type { ClientConnectionConfig } from '@companion-app/shared/Model/Connections.js'
 import { ModuleInstanceType } from '@companion-app/shared/Model/Instance.js'
+import { Badge, badgeToneForStatusCategory } from '~/Components/Badge'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
 import { Grid } from '~/Components/Grid'
 import { InstanceGenericEditPanel } from '~/Instances/InstanceEdit/InstanceEditPanel.js'
@@ -171,18 +172,9 @@ export const ConnectionEditPanel = observer(function ConnectionEditPanel({ conne
 					<div className="rounded-md border border-border bg-surface-muted/20 p-4 space-y-3 shrink-0">
 						<div className="flex items-center justify-between">
 							<h4 className="text-sm font-semibold text-body mb-0">Connection Health</h4>
-							<span
-								className={classNames(
-									'px-2.5 py-0.5 rounded-full text-xs font-medium capitalize',
-									status?.category === 'good'
-										? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
-										: status?.category === 'warning'
-											? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25'
-											: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25'
-								)}
-							>
+							<Badge tone={badgeToneForStatusCategory(status?.category)} className="capitalize">
 								{status?.level || status?.category || 'Unknown'}
-							</span>
+							</Badge>
 						</div>
 
 						{status?.message && (

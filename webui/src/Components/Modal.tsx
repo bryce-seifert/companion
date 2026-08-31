@@ -215,11 +215,7 @@ function ModalHeader({ className, children, closeButton, ...props }: ModalHeader
 		<div className={classNames('modal2-header', className)} {...props}>
 			{children}
 			{closeButton && (
-				<Dialog.Close
-					className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-muted hover:text-body hover:bg-surface-muted transition-colors cursor-pointer border-0 bg-transparent shrink-0 ms-auto"
-					aria-label="Close modal"
-					tabIndex={-1}
-				>
+				<Dialog.Close className="panel-icon-button ms-auto" aria-label="Close modal" tabIndex={-1}>
 					<FontAwesomeIcon icon={faTimes} className="text-sm" />
 				</Dialog.Close>
 			)}

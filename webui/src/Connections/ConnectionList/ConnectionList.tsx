@@ -256,28 +256,13 @@ function ConnectionListTableHeading() {
 			</div>
 
 			<div className="flex flex-wrap items-center gap-1.5">
-				<button
-					type="button"
+				<StatusFilterPill
+					label="All"
+					count={totalCount}
+					isActive={isAllActive}
 					onClick={toggleAll}
 					title="Show all status types"
-					className={classNames(
-						'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full transition-all border cursor-pointer select-none',
-						{
-							'bg-secondary/40 border-secondary text-body shadow-xs font-semibold': isAllActive,
-							'bg-transparent border-transparent text-muted hover:text-body hover:bg-secondary/20': !isAllActive,
-						}
-					)}
-				>
-					<span>All</span>
-					<span
-						className={classNames(
-							'px-1.5 py-0.5 rounded-full text-3xs font-semibold leading-none',
-							isAllActive ? 'bg-secondary text-body' : 'bg-secondary/30 text-muted'
-						)}
-					>
-						{totalCount}
-					</span>
-				</button>
+				/>
 
 				<StatusFilterPill
 					label="OK"

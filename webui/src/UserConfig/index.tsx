@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Link, type RegisteredRouter, type ToPathOption } from '@tanstack/react-router'
 import { Grid } from '~/Components/Grid'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { PageIntro } from '~/Layout/PageIntro'
 
 export function SettingsSelectPage(): React.JSX.Element {
 	// Not a split: one readable-width column of cards, so this stays on the 12-column grid.
@@ -14,12 +15,9 @@ export function SettingsSelectPage(): React.JSX.Element {
 
 			<div className="flex-1 min-h-0 overflow-y-auto">
 				<div className="max-w-5xl">
-					<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-4">
-						<h4 className="text-base font-bold text-body mb-1">Companion System Settings</h4>
-						<p className="text-xs text-muted mb-0">
-							Select a configuration category below to adjust installation parameters, protocols, and backups.
-						</p>
-					</div>
+					<PageIntro title="Companion System Settings">
+						Select a configuration category below to adjust installation parameters, protocols, and backups.
+					</PageIntro>
 
 					<Grid.Row className="gap-3">
 						<SettingsLinkCard

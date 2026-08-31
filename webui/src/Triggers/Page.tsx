@@ -122,11 +122,7 @@ export const TriggersPage = observer(function Triggers() {
 		<div className="page-shell">
 			<PageHeader icon={faClock} title="Triggers" helpAction="/user-guide/config/triggers" />
 
-			<SplitPanels.Root
-				showing={selectedTriggerId ? 'secondary' : 'primary'}
-				className="triggers-page"
-				resize={{ storageKey: 'triggers' }}
-			>
+			<SplitPanels.Root showing={selectedTriggerId ? 'secondary' : 'primary'} resize={{ storageKey: 'triggers' }}>
 				<GenericConfirmModal ref={confirmModalRef} />
 				<ConfirmExportModal ref={exportModalRef} title="Export Triggers" />
 

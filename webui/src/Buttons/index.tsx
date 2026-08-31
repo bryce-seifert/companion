@@ -12,13 +12,13 @@ import { useMatchRoute, useNavigate, type UseNavigateResult } from '@tanstack/re
 import { observer } from 'mobx-react-lite'
 import { nanoid } from 'nanoid'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { useMediaQuery } from 'usehooks-ts'
 import { formatLocation } from '@companion-app/shared/ControlId.js'
 import type { ControlLocation } from '@companion-app/shared/Model/Common.js'
 import { ContextMenu } from '~/Components/ContextMenu.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
 import { TabArea } from '~/Components/TabArea.js'
 import { safeSetSessionStorage } from '~/Helpers/SafeStorage.js'
+import { useTwoPanelMode } from '~/Hooks/useLayoutMode.js'
 import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC.js'
@@ -65,7 +65,7 @@ export const ButtonsPage = observer(function ButtonsPage() {
 	const clearModalRef = useRef<GenericConfirmModalRef>(null)
 	const [gridZoomController, gridZoomValue] = useGridZoom('grid')
 
-	const isLargeScreen = useMediaQuery('(min-width: 1200px)')
+	const isLargeScreen = useTwoPanelMode()
 
 	const [tabResetToken, setTabResetToken] = useState(nanoid())
 	const [activeTab, setActiveTab] = useState('grid')
@@ -397,7 +397,7 @@ export const ButtonsPage = observer(function ButtonsPage() {
 	)
 
 	return (
-		<SplitPanels.Root showing={null} className="buttons-page" resize={{ storageKey: 'buttons' }}>
+		<SplitPanels.Root showing={null} resize={{ storageKey: 'buttons' }}>
 			<GenericConfirmModal ref={clearModalRef} />
 			<ContextMenu
 				open={contextMenuOpen}

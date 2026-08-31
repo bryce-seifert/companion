@@ -75,14 +75,14 @@ interface ImageEditPanelHeadingProps {
 
 function ImageEditPanelHeading({ doClose, twoPanelMode }: ImageEditPanelHeadingProps) {
 	return (
-		<div className="flex items-center justify-between gap-3 p-3 bg-surface-muted/40 border-b border-border/70 shrink-0">
+		<div className="secondary-panel-simple-header compact">
 			<div className="flex items-center gap-2">
-				<span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-surface-muted text-muted text-xs">
+				<span className="panel-icon-button">
 					<FontAwesomeIcon icon={faImages} />
 				</span>
 				<h3 className="text-sm font-bold text-body mb-0">Edit Image</h3>
 			</div>
-			<div className="flex items-center gap-1.5">
+			<div className="header-buttons">
 				<ContextHelpButton action="/user-guide/config/image-library#editing">Define your image here.</ContextHelpButton>
 				{!twoPanelMode && <CloseButton closeFn={doClose} />}
 			</div>

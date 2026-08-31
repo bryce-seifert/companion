@@ -5,6 +5,7 @@ import { memo, useState } from 'react'
 import { TabArea } from '~/Components/TabArea.js'
 import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { PageIntro } from '~/Layout/PageIntro'
 import { ContextHelpButton } from '~/Layout/PanelIcons.js'
 import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
@@ -37,15 +38,12 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 				<div className="flex-1 min-h-0 overflow-y-auto">
 					<SplitPanels.Root showing={null} resize={{ storageKey: 'settings' }}>
 						<SplitPanels.Primary className="mb-3 xl:mb-0">
-							<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3 mb-3">
-								<h4 className="text-base font-bold text-body mb-1 flex items-center gap-2">
-									<span>Protocols Settings</span>
-									<ContextHelpButton action="/user-guide/config/settings#protocols" />
-								</h4>
-								<p className="text-xs text-muted mb-0">
-									Enable or disable network remote control endpoints for TCP, UDP, HTTP, OSC, Artnet, and Satellite.
-								</p>
-							</div>
+							<PageIntro
+								title="Protocols Settings"
+								titleSuffix={<ContextHelpButton action="/user-guide/config/settings#protocols" />}
+							>
+								Enable or disable network remote control endpoints for TCP, UDP, HTTP, OSC, Artnet, and Satellite.
+							</PageIntro>
 							<div className="rounded-lg border border-border/70 bg-surface overflow-hidden p-4">
 								<UserConfigTable />
 							</div>

@@ -73,11 +73,7 @@ export const MainSurfacesPage = observer(function MainSurfacesPage(): React.JSX.
 
 			<SurfacesNav />
 
-			<SplitPanels.Root
-				showing={selectedSurfaceId ? 'secondary' : 'primary'}
-				className="surfaces-page"
-				resize={{ storageKey: 'surfaces' }}
-			>
+			<SplitPanels.Root showing={selectedSurfaceId ? 'secondary' : 'primary'} resize={{ storageKey: 'surfaces' }}>
 				<SplitPanels.Primary>
 					<div className="flex flex-col h-full min-h-0 gap-2.5 w-full">
 						{scanError && (

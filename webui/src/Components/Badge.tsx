@@ -39,3 +39,17 @@ export function Badge({ tone, indicator, dot, className, children }: BadgeProps)
 		</span>
 	)
 }
+
+/** Map an `InstanceStatusEntry['category']` (a free-form string from the module) to a badge tone. */
+export function badgeToneForStatusCategory(category: string | null | undefined): BadgeTone {
+	switch (category) {
+		case 'good':
+			return 'good'
+		case 'warning':
+			return 'warning'
+		case 'error':
+			return 'error'
+		default:
+			return 'neutral'
+	}
+}

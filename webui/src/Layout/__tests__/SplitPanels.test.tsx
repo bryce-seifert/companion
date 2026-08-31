@@ -98,14 +98,14 @@ describe('SplitPanels', () => {
 
 	it('merges className and passes through HTML attributes', () => {
 		const { container } = render(
-			<SplitPanels.Root showing={null} className="connections-page" data-testid="root" resize={null}>
-				<SplitPanels.Primary className="connections-panel">primary</SplitPanels.Primary>
+			<SplitPanels.Root showing={null} className="custom-page" data-testid="root" resize={null}>
+				<SplitPanels.Primary className="custom-panel">primary</SplitPanels.Primary>
 			</SplitPanels.Root>
 		)
 		const root = container.firstChild as HTMLElement
-		expect(root).toHaveClass('split-panels', 'connections-page')
+		expect(root).toHaveClass('split-panels', 'custom-page')
 		expect(root.getAttribute('data-testid')).toBe('root')
-		expect(root.children[0]).toHaveClass('primary-panel', 'connections-panel')
+		expect(root.children[0]).toHaveClass('primary-panel', 'custom-panel')
 	})
 
 	it('a panel outside a root is not hidden', () => {
