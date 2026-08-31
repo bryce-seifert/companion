@@ -19,6 +19,14 @@
 	grid-template-columns: 1fr;
 	height: 100%;
 
+	/* The containing block for the absolutely-positioned resize handle, whose `left` is measured from
+	   this element. Needed here rather than on an ancestor, as a split can be nested in a page shell. */
+	position: relative;
+
+	/* A single track the height of the split, rather than of its content, so that panels filling it
+	   (and scrolling inside) measure against the space they are given. */
+	grid-template-rows: minmax(0, 1fr);
+
 	> * {
 		min-width: 0;
 	}

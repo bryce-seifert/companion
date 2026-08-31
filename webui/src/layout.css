@@ -339,6 +339,13 @@ hr.slim {
 	overflow: hidden;
 	gap: 0.5rem;
 	padding: 0 0.75rem 0.75rem;
+
+	/* The split takes the space left under the header, rather than the shell's full height. */
+	> .split-panels {
+		flex: 1;
+		height: auto;
+		min-height: 0;
+	}
 }
 
 .page-header {
