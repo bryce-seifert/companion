@@ -57,11 +57,20 @@
 	--text-2xs: 0.6875rem;
 	--text-3xs: 0.625rem;
 
-	--color-primary: #d50215;
-	--color-accent-active: #941d1b; /* the active-item indicator (sidebar nav, tab underline) */
+	/* Three jobs that used to share one red. Keep them apart:
+	   `brand`   — identity only: the logo, the page-title icon, the active sidebar item, inline links.
+	   `primary` — anything safe and interactive: primary buttons, checked controls, selection, focus.
+	   `danger`  — destructive actions and error status, and nothing else.
+	   A red button in the content area now always means "this destroys something". */
+	--color-brand: #d50215;
+	--color-brand-hover: rgb(170, 2, 17); /* darkened brand, for hover on brand-coloured text/links */
+	--color-primary: #1f242e;
+	--color-primary-hover: #2b3341;
+	--color-primary-active: #12161d;
+	--color-accent-active: #941d1b; /* the active sidebar indicator — brand, not selection */
 	--color-secondary: #ccc;
 	--color-success: #1b9e3e;
-	--color-danger: #e55353;
+	--color-danger: #c8102e;
 	--color-warning: #f9b115;
 	--color-info: #3399ff;
 	--color-light: #e9e9e9;
@@ -193,10 +202,10 @@
 	--color-on-dark: #fff;
 	--color-on-dark-muted: rgba(255, 255, 255, 0.75);
 
-	/* Primary tints */
-	--color-primary-soft: #ea818a;
-	--color-link-hover: rgb(170.4, 1.6, 16.8); /* darkened brand red for a:hover */
-	--color-primary-softer: #f2b3b9;
+	/* Primary tints — the borders a field takes on focus/hover, so they follow `primary`, not the brand. */
+	--color-primary-soft: #8a94a6;
+	--color-primary-softer: #c3cad6;
+	--color-link-hover: var(--color-brand-hover); /* inline links stay brand-coloured */
 	--color-focus-ring: color-mix(in srgb, var(--color-primary) 25%, transparent);
 
 	/* Drop-shadow / dark-tint scale. The alpha for each weight lives here (one place to retune when
@@ -212,6 +221,12 @@
 	--color-shadow-35: color-mix(in srgb, var(--color-shadow) 35%, transparent);
 	--color-shadow-40: color-mix(in srgb, var(--color-shadow) 40%, transparent);
 	--color-shadow-50: color-mix(in srgb, var(--color-shadow) 50%, transparent);
+
+	/* Switch track. `off` is a light, visibly empty well and `on` is the filled `--color-primary`, so
+	   the two states differ in fill as well as thumb position — the old dark-on-dark pair read as the
+	   same state at a glance. */
+	--color-switch-off: #b4bcc7;
+	--color-switch-off-hover: #a3acb9;
 
 	/* Tabs (tab-area, and the secondary-panel tabs in layout) */
 	--color-tab-bg: #f3f3f3; /* inactive tab background */

@@ -78,7 +78,9 @@
 
 		&[data-active] {
 			background-color: transparent;
-			border-bottom: 2px solid var(--color-accent-active);
+			/* A selected tab is selection, not identity, so it follows `primary` (the sidebar's own
+			   active indicator keeps --color-accent-active, which is brand-derived). */
+			border-bottom: 2px solid var(--color-primary);
 			color: var(--color-text-strong);
 		}
 

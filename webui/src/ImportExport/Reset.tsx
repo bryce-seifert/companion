@@ -137,12 +137,13 @@ export const ResetWizardModal = observer(function ResetWizardModal() {
 
 	let nextButton
 	switch (currentStep) {
+		// The apply step is the destructive one, so its button is the destructive colour.
 		case applyStep:
 			nextButton = (
 				<form.Subscribe
 					selector={(state) => [state.canSubmit, state.isSubmitting]}
 					children={([canSubmit, isSubmitting]) => (
-						<Button ref={buttonRef} color="primary" type="submit" disabled={!canSubmit || isSubmitting}>
+						<Button ref={buttonRef} color="danger" type="submit" disabled={!canSubmit || isSubmitting}>
 							Apply {isSubmitting ? '...' : ''}
 						</Button>
 					)}
