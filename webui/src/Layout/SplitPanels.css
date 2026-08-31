@@ -86,21 +86,35 @@
 	cursor: col-resize;
 	touch-action: none;
 
-	/* A slim visible line down the middle of the hit area. */
+	/* Just a short grip at the middle of the divide, rather than a full-height rule: enough to say
+	   "this can be dragged" without drawing a line between the panels. It firms up on hover. */
 	&::before {
 		content: '';
 		position: absolute;
-		top: 0;
-		bottom: 0;
+		top: 50%;
 		left: 50%;
-		transform: translateX(-50%);
-		width: 2px;
-		border-radius: 1px;
+		transform: translate(-50%, -50%);
+		width: 3px;
+		height: 2rem;
+		border-radius: 9999px;
 		background-color: var(--color-border);
+		opacity: 0.6;
+		transition:
+			height 0.15s ease,
+			opacity 0.15s ease,
+			background-color 0.15s ease;
 	}
 
 	&:hover::before,
 	&:active::before {
+		height: 3.5rem;
+		opacity: 1;
 		background-color: var(--color-border-hover);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.split-panels-resize-handle::before {
+		transition: none;
 	}
 }
