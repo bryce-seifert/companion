@@ -1,8 +1,8 @@
 import { faBoxes } from '@fortawesome/free-solid-svg-icons'
 import { Outlet, useMatchRoute, useNavigate } from '@tanstack/react-router'
 import { memo, useCallback } from 'react'
-import { Grid } from '~/Components/Grid'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { ModulesList, type ModuleTypeAndIdPair } from './ModulesList.js'
 
@@ -24,32 +24,27 @@ export const ModulesPage = memo(function ModulesPage() {
 		[navigate]
 	)
 
-	const isDetailOpen = !!selectedModuleInfo
-	const showPrimaryPanel = !isDetailOpen
-
 	return (
 		<div className="page-shell">
 			<PageHeader icon={faBoxes} title="Modules Manager" helpAction="/user-guide/config/modules" />
 
-			<Grid.Row className="connections-page split-panels flex-1 min-h-0 !h-auto">
-				<Grid.Col
-					xs={12}
-					xl={isDetailOpen ? 6 : 12}
-					className={`connections-panel primary-panel h-full min-h-0 ${showPrimaryPanel ? 'block' : 'hidden xl:block'}`}
-				>
+			<SplitPanels.Root
+				showing={selectedModuleInfo ? 'secondary' : 'primary'}
+				className="connections-page"
+				resize={{ storageKey: 'modules' }}
+			>
+				<SplitPanels.Primary className="connections-panel">
 					<ModulesList doManageModule={doManageModule} selectedModuleInfo={selectedModuleInfo} />
-				</Grid.Col>
+				</SplitPanels.Primary>
 
-				{isDetailOpen && (
-					<Grid.Col xs={12} xl={6} className="connections-panel secondary-panel h-full min-h-0 block">
-						<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden">
-							<MyErrorBoundary>
-								<Outlet />
-							</MyErrorBoundary>
-						</div>
-					</Grid.Col>
-				)}
-			</Grid.Row>
+				<SplitPanels.Secondary className="connections-panel add-connections-panel">
+					<div className="secondary-panel-simple">
+						<MyErrorBoundary>
+							<Outlet />
+						</MyErrorBoundary>
+					</div>
+				</SplitPanels.Secondary>
+			</SplitPanels.Root>
 		</div>
 	)
 })

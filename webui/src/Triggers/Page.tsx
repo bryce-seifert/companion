@@ -24,7 +24,6 @@ import { Button, ButtonGroup, LinkButtonExternal } from '~/Components/Button'
 import { CollectionsNestingTable } from '~/Components/CollectionsNestingTable/CollectionsNestingTable'
 import { ConfirmExportModal, type ConfirmExportModalRef } from '~/Components/ConfirmExportModal.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
-import { Grid } from '~/Components/Grid'
 import { NonIdealState } from '~/Components/NonIdealState.js'
 import { SearchBox } from '~/Components/SearchBox'
 import { SwitchInputField } from '~/Components/SwitchInputField'
@@ -32,6 +31,7 @@ import { PanelCollapseHelperProvider } from '~/Helpers/CollapseHelper'
 import { useTwoPanelMode } from '~/Hooks/useLayoutMode'
 import { PageHeader } from '~/Layout/PageHeader'
 import { CloseButton, ContextHelpButton } from '~/Layout/PanelIcons'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { sanitizeHtmlString } from '~/Resources/SanitizeHtml.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC'
 import { makeAbsolutePath, useComputed } from '~/Resources/util.js'
@@ -118,22 +118,19 @@ export const TriggersPage = observer(function Triggers() {
 		void navigate({ to: '/triggers' })
 	}, [navigate])
 
-	const showPrimaryPanel = twoPanelMode || !selectedTriggerId
-	const showSecondaryPanel = twoPanelMode || !!selectedTriggerId
-
 	return (
 		<div className="page-shell">
 			<PageHeader icon={faClock} title="Triggers" helpAction="/user-guide/config/triggers" />
 
-			<Grid.Row className="triggers-page split-panels flex-1 min-h-0 !h-auto">
+			<SplitPanels.Root
+				showing={selectedTriggerId ? 'secondary' : 'primary'}
+				className="triggers-page"
+				resize={{ storageKey: 'triggers' }}
+			>
 				<GenericConfirmModal ref={confirmModalRef} />
 				<ConfirmExportModal ref={exportModalRef} title="Export Triggers" />
 
-				<Grid.Col
-					xs={12}
-					xl={selectedTriggerId ? 6 : 12}
-					className={classnames('primary-panel h-full min-h-0', showPrimaryPanel ? 'block' : 'hidden xl:block')}
-				>
+				<SplitPanels.Primary>
 					<div className="flex flex-col h-full min-h-0 gap-2">
 						{/* Top Header Card: Toolbar & Search */}
 						<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex flex-col gap-2.5 shrink-0">
@@ -185,23 +182,21 @@ export const TriggersPage = observer(function Triggers() {
 							</PanelCollapseHelperProvider>
 						</div>
 					</div>
-				</Grid.Col>
+				</SplitPanels.Primary>
 
-				{showSecondaryPanel && (
-					<Grid.Col xs={12} xl={6} className="secondary-panel h-full min-h-0 block">
-						<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden">
-							{!!selectedTriggerId && (
-								<TriggerEditPanelHeading
-									doCloseTrigger={doCloseTrigger}
-									twoPanelMode={twoPanelMode}
-									controlId={CreateTriggerControlId(selectedTriggerId)}
-								/>
-							)}
-							<Outlet />
-						</div>
-					</Grid.Col>
-				)}
-			</Grid.Row>
+				<SplitPanels.Secondary>
+					<div className="secondary-panel-simple">
+						{!!selectedTriggerId && (
+							<TriggerEditPanelHeading
+								doCloseTrigger={doCloseTrigger}
+								twoPanelMode={twoPanelMode}
+								controlId={CreateTriggerControlId(selectedTriggerId)}
+							/>
+						)}
+						<Outlet />
+					</div>
+				</SplitPanels.Secondary>
+			</SplitPanels.Root>
 		</div>
 	)
 })

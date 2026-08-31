@@ -9,10 +9,10 @@ import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useRef } from 'react'
 import type { BackupRulesConfig } from '@companion-app/shared/Model/UserConfigModel.js'
 import { Button } from '~/Components/Button'
-import { Grid } from '~/Components/Grid'
 import { SwitchInputField } from '~/Components/SwitchInputField.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { ContextHelpButton } from '~/Layout/PanelIcons.js'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '../Components/GenericConfirmModal.js'
 import { NonIdealState } from '../Components/NonIdealState.js'
@@ -47,9 +47,6 @@ export const SettingsBackupsPage = observer(function UserConfig() {
 	const routeMatch = matchRoute({ to: '/settings/backups/$ruleId' })
 	const selectedRuleId = routeMatch ? routeMatch.ruleId : null
 
-	const showPrimaryPanel = !selectedRuleId
-	const showSecondaryPanel = !!selectedRuleId
-
 	return (
 		<div className="page-shell">
 			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings#backups" />
@@ -58,12 +55,8 @@ export const SettingsBackupsPage = observer(function UserConfig() {
 				<SettingsNav activeTab="backups" />
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
-					<Grid.Row className="split-panels flex-1 min-h-0">
-						<Grid.Col
-							xs={12}
-							xl={selectedRuleId ? 6 : 12}
-							className={`primary-panel ${showPrimaryPanel ? '' : 'xl:block hidden'}`}
-						>
+					<SplitPanels.Root showing={selectedRuleId ? 'secondary' : 'primary'} resize={{ storageKey: 'backups' }}>
+						<SplitPanels.Primary>
 							<div className="flex flex-col h-full gap-3">
 								<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2 shrink-0">
 									<div>
@@ -84,14 +77,14 @@ export const SettingsBackupsPage = observer(function UserConfig() {
 									<BackupsTable editRule={doEditRule} />
 								</div>
 							</div>
-						</Grid.Col>
+						</SplitPanels.Primary>
 
-						<Grid.Col xs={12} xl={6} className={`secondary-panel ${showSecondaryPanel ? '' : 'xl:block hidden'}`}>
-							<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden border border-border/70 rounded-lg bg-surface">
+						<SplitPanels.Secondary>
+							<div className="secondary-panel-simple">
 								<Outlet />
 							</div>
-						</Grid.Col>
-					</Grid.Row>
+						</SplitPanels.Secondary>
+					</SplitPanels.Root>
 				</div>
 			</div>
 		</div>

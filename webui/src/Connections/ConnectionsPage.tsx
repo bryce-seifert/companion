@@ -2,10 +2,10 @@ import { faPlug } from '@fortawesome/free-solid-svg-icons'
 import { Outlet, useMatchRoute, useNavigate } from '@tanstack/react-router'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useEffect } from 'react'
-import { Grid } from '~/Components/Grid'
 import { Modal } from '~/Components/Modal.js'
 import { AddConnectionsPanel } from '~/Connections/AddConnectionPanel.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { ConnectionsList } from './ConnectionList/ConnectionList.js'
 
@@ -36,32 +36,27 @@ export const ConnectionsPage = observer(function ConnectionsPage(): React.JSX.El
 		return () => window.removeEventListener('keydown', handleKeyDown)
 	}, [selectedConnectionId, addConnectionsMatch, navigate])
 
-	// On narrow screens, show only one panel at a time (list or edit)
-	const isDetailOpen = !!selectedConnectionId
-	const showPrimaryPanel = !isDetailOpen
-
 	return (
 		<div className="page-shell">
 			<PageHeader icon={faPlug} title="Connections" helpAction="/user-guide/config/connections" />
 
-			<Grid.Row className="connections-page split-panels flex-1 min-h-0 !h-auto">
-				<Grid.Col
-					xl={isDetailOpen ? 6 : 12}
-					className={`connections-panel primary-panel h-full min-h-0 ${showPrimaryPanel ? 'block' : 'hidden xl:block'}`}
-				>
+			<SplitPanels.Root
+				showing={selectedConnectionId ? 'secondary' : 'primary'}
+				className="connections-page"
+				resize={{ storageKey: 'connections' }}
+			>
+				<SplitPanels.Primary className="connections-panel">
 					<ConnectionsList selectedConnectionId={selectedConnectionId} />
-				</Grid.Col>
+				</SplitPanels.Primary>
 
-				{isDetailOpen && (
-					<Grid.Col xl={6} className="connections-panel secondary-panel h-full min-h-0 block">
-						<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden">
-							<MyErrorBoundary>
-								<Outlet />
-							</MyErrorBoundary>
-						</div>
-					</Grid.Col>
-				)}
-			</Grid.Row>
+				<SplitPanels.Secondary className="connections-panel">
+					<div className="secondary-panel-simple">
+						<MyErrorBoundary>
+							<Outlet />
+						</MyErrorBoundary>
+					</div>
+				</SplitPanels.Secondary>
+			</SplitPanels.Root>
 
 			<Modal.Root
 				open={addConnectionsMatch}

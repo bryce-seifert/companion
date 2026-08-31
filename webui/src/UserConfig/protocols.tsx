@@ -2,11 +2,11 @@ import { faCog, faNetworkWired } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { observer } from 'mobx-react-lite'
 import { memo, useState } from 'react'
-import { Grid } from '~/Components/Grid'
 import { TabArea } from '~/Components/TabArea.js'
 import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { ContextHelpButton } from '~/Layout/PanelIcons.js'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { useUserConfigProps } from './Context.js'
 import { ArtnetConfig } from './Sections/ArtnetConfig.js'
@@ -35,8 +35,8 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 				<SettingsNav activeTab="protocols" />
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
-					<Grid.Row className="split-panels flex-1 min-h-0">
-						<Grid.Col xs={12} xl={6} className="primary-panel mb-3 xl:mb-0">
+					<SplitPanels.Root showing={null} resize={{ storageKey: 'settings' }}>
+						<SplitPanels.Primary className="mb-3 xl:mb-0">
 							<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3 mb-3">
 								<h4 className="text-base font-bold text-body mb-1 flex items-center gap-2">
 									<span>Protocols Settings</span>
@@ -49,9 +49,9 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 							<div className="rounded-lg border border-border/70 bg-surface overflow-hidden p-4">
 								<UserConfigTable />
 							</div>
-						</Grid.Col>
+						</SplitPanels.Primary>
 
-						<Grid.Col xs={12} xl={6} className="secondary-panel">
+						<SplitPanels.Secondary>
 							<div className="rounded-lg border border-border/70 bg-surface overflow-hidden flex flex-col h-full">
 								<div className="flex items-center gap-2 p-3 bg-surface-muted/40 border-b border-border/70">
 									<span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-surface-muted text-muted text-xs">
@@ -69,8 +69,8 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 									<RemoteControlInfo />
 								</div>
 							</div>
-						</Grid.Col>
-					</Grid.Row>
+						</SplitPanels.Secondary>
+					</SplitPanels.Root>
 				</div>
 			</div>
 		</div>

@@ -14,12 +14,12 @@ import { Button, ButtonGroup } from '~/Components/Button'
 import { CollectionsNestingTable } from '~/Components/CollectionsNestingTable/CollectionsNestingTable'
 import { CopyButton } from '~/Components/CopyButton'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
-import { Grid } from '~/Components/Grid'
 import { NonIdealState } from '~/Components/NonIdealState.js'
 import { SearchBox } from '~/Components/SearchBox'
 import { PanelCollapseHelperProvider } from '~/Helpers/CollapseHelper'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { CloseButton, ContextHelpButton } from '~/Layout/PanelIcons'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC'
 import { useComputed } from '~/Resources/util'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
@@ -117,9 +117,6 @@ export const ExpressionVariablesPage = observer(function ExpressionVariablesPage
 		void navigate({ to: '/variables/expression' })
 	}, [navigate])
 
-	const showPrimaryPanel = !selectedVariableId
-	const showSecondaryPanel = !!selectedVariableId
-
 	return (
 		<div className="page-shell">
 			<GenericConfirmModal ref={confirmModalRef} />
@@ -130,73 +127,69 @@ export const ExpressionVariablesPage = observer(function ExpressionVariablesPage
 				helpAction="/user-guide/config/variables#expression-variables"
 			/>
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
-				<VariablesNav activeTab="expression" />
+			<VariablesNav activeTab="expression" />
 
-				<Grid.Row className="triggers-page split-panels flex-1 min-h-0 !h-auto">
-					<Grid.Col
-						xs={12}
-						xl={selectedVariableId ? 6 : 12}
-						className={classnames('primary-panel h-full min-h-0', showPrimaryPanel ? 'block' : 'hidden xl:block')}
-					>
-						<div className="flex flex-col h-full min-h-0 gap-2">
-							{/* Top Header Card: Toolbar & Search */}
-							<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex flex-col gap-2.5 shrink-0">
-								<div className="flex items-center justify-between gap-2 flex-wrap">
-									<ButtonGroup>
-										<Button color="primary" onClick={doAddNew} size="sm">
-											<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Expression Variable
-										</Button>
-										<CreateCollectionButton />
-									</ButtonGroup>
-								</div>
-
-								<SearchBox
-									placeholder="Search expression variables..."
-									filter={filter}
-									setFilter={setFilter}
-									className="w-full h-9"
-								/>
+			<SplitPanels.Root
+				showing={selectedVariableId ? 'secondary' : 'primary'}
+				className="triggers-page"
+				resize={{ storageKey: 'expression-variables' }}
+			>
+				<SplitPanels.Primary>
+					<div className="flex flex-col h-full min-h-0 gap-2">
+						{/* Top Header Card: Toolbar & Search */}
+						<div className="bg-surface-muted/50 border border-border/70 p-3 rounded-lg flex flex-col gap-2.5 shrink-0">
+							<div className="flex items-center justify-between gap-2 flex-wrap">
+								<ButtonGroup>
+									<Button color="primary" onClick={doAddNew} size="sm">
+										<FontAwesomeIcon icon={faAdd} className="me-1.5" /> Add Expression Variable
+									</Button>
+									<CreateCollectionButton />
+								</ButtonGroup>
 							</div>
 
-							{/* Expression Variables Table Container */}
-							<div className="flex-1 min-h-0 scrollable-content rounded-md border border-border/70 bg-surface">
-								<PanelCollapseHelperProvider
-									storageId="expression-variable-groups"
-									knownPanelIds={expressionVariablesList.allCollectionIds}
-									defaultCollapsed
-								>
-									<ExpressionVariablesTableContextProvider
-										deleteModalRef={confirmModalRef}
-										selectExpressionVariable={selectExpressionVariable}
-										selectedVariableId={selectedVariableId}
-									>
-										<CollectionsNestingTable<ExpressionVariableCollection, ExpressionVariableDataWithId>
-											NoContent={ExpressionVariablesListNoContent}
-											ItemRow={ExpressionVariableItemRow}
-											itemName="expression variable"
-											dragId="expression-variable"
-											collectionsApi={expressionVariablesGroupsApi}
-											collections={expressionVariablesList.rootCollections()}
-											items={allExpressionVariables}
-											selectedItemId={selectedVariableId}
-										/>
-									</ExpressionVariablesTableContextProvider>
-								</PanelCollapseHelperProvider>
-							</div>
+							<SearchBox
+								placeholder="Search expression variables..."
+								filter={filter}
+								setFilter={setFilter}
+								className="w-full h-9"
+							/>
 						</div>
-					</Grid.Col>
 
-					{showSecondaryPanel && (
-						<Grid.Col xs={12} xl={6} className="secondary-panel h-full min-h-0 block">
-							<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden border border-border/70 rounded-lg bg-surface">
-								{!!selectedVariableId && <ExpressionVariableEditPanelHeading doCloseVariable={doCloseVariable} />}
-								<Outlet />
-							</div>
-						</Grid.Col>
-					)}
-				</Grid.Row>
-			</div>
+						{/* Expression Variables Table Container */}
+						<div className="flex-1 min-h-0 scrollable-content rounded-md border border-border/70 bg-surface">
+							<PanelCollapseHelperProvider
+								storageId="expression-variable-groups"
+								knownPanelIds={expressionVariablesList.allCollectionIds}
+								defaultCollapsed
+							>
+								<ExpressionVariablesTableContextProvider
+									deleteModalRef={confirmModalRef}
+									selectExpressionVariable={selectExpressionVariable}
+									selectedVariableId={selectedVariableId}
+								>
+									<CollectionsNestingTable<ExpressionVariableCollection, ExpressionVariableDataWithId>
+										NoContent={ExpressionVariablesListNoContent}
+										ItemRow={ExpressionVariableItemRow}
+										itemName="expression variable"
+										dragId="expression-variable"
+										collectionsApi={expressionVariablesGroupsApi}
+										collections={expressionVariablesList.rootCollections()}
+										items={allExpressionVariables}
+										selectedItemId={selectedVariableId}
+									/>
+								</ExpressionVariablesTableContextProvider>
+							</PanelCollapseHelperProvider>
+						</div>
+					</div>
+				</SplitPanels.Primary>
+
+				<SplitPanels.Secondary>
+					<div className="secondary-panel-simple">
+						{!!selectedVariableId && <ExpressionVariableEditPanelHeading doCloseVariable={doCloseVariable} />}
+						<Outlet />
+					</div>
+				</SplitPanels.Secondary>
+			</SplitPanels.Root>
 		</div>
 	)
 })

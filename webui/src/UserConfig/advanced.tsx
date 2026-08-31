@@ -1,7 +1,6 @@
 import { faCog } from '@fortawesome/free-solid-svg-icons'
 import { observer } from 'mobx-react-lite'
 import { memo } from 'react'
-import { Grid } from '~/Components/Grid'
 import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { useUserConfigProps } from './Context.js'
@@ -19,17 +18,15 @@ export const SettingsAdvancedPage = memo(function UserConfig() {
 				<SettingsNav activeTab="advanced" />
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
-					<Grid.Row className="split-panels">
-						<Grid.Col xs={12} className="primary-panel">
-							<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-3">
-								<h4 className="text-base font-bold text-body mb-1">Advanced Settings</h4>
-								<p className="text-xs text-muted mb-0">
-									Admin authentication, HTTPS certificates, and experimental features.
-								</p>
-							</div>
-							<UserConfigTable />
-						</Grid.Col>
-					</Grid.Row>
+					<div className="primary-panel">
+						<div className="bg-surface-muted/30 border border-border/70 rounded-lg p-3.5 mb-3">
+							<h4 className="text-base font-bold text-body mb-1">Advanced Settings</h4>
+							<p className="text-xs text-muted mb-0">
+								Admin authentication, HTTPS certificates, and experimental features.
+							</p>
+						</div>
+						<UserConfigTable />
+					</div>
 				</div>
 			</div>
 		</div>

@@ -17,9 +17,9 @@ import { formatLocation } from '@companion-app/shared/ControlId.js'
 import type { ControlLocation } from '@companion-app/shared/Model/Common.js'
 import { ContextMenu } from '~/Components/ContextMenu.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
-import { Grid } from '~/Components/Grid'
 import { TabArea } from '~/Components/TabArea.js'
 import { safeSetSessionStorage } from '~/Helpers/SafeStorage.js'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { trpc, useMutationExt } from '~/Resources/TRPC.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
@@ -130,10 +130,8 @@ export const ButtonsPage = observer(function ButtonsPage() {
 
 	const gridSize = userConfig.properties?.gridSize
 
-	const resetControlMutation = useMutationExt(trpc.controls.resetControl.mutationOptions())
-	const copyControlMutation = useMutationExt(trpc.controls.copyControl.mutationOptions())
-	const moveControlMutation = useMutationExt(trpc.controls.moveControl.mutationOptions())
-	const swapControlMutation = useMutationExt(trpc.controls.swapControl.mutationOptions())
+	const resetControlsMutation = useMutationExt(trpc.controls.resetControls.mutationOptions())
+	const gridTransferMutation = useMutationExt(trpc.controls.gridBatchTransfer.mutationOptions())
 
 	// Dropping a preset (from the Presets tab) onto a grid button imports it at that location.
 	// Subscribed via the global dnd-kit provider; we filter to preset drags by `type`.
@@ -298,7 +296,7 @@ export const ButtonsPage = observer(function ButtonsPage() {
 							`This will clear the style, feedbacks and all actions`,
 							'Clear',
 							() => {
-								resetControlMutation.mutateAsync({ location: selectedButton }).catch((e) => {
+								resetControlsMutation.mutateAsync({ locations: [selectedButton], newType: null }).catch((e) => {
 									console.error(`Reset failed: ${e}`)
 								})
 							}
@@ -316,23 +314,32 @@ export const ButtonsPage = observer(function ButtonsPage() {
 						console.log('do paste', copyFromButton, selectedButton)
 
 						if (copyFromButton[1] === 'copy') {
-							copyControlMutation
-								.mutateAsync({ fromLocation: copyFromButton[0], toLocation: selectedButton })
+							gridTransferMutation
+								.mutateAsync({
+									operation: 'copy',
+									pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
+								})
 								.catch((e) => {
 									console.error(`copy failed: ${e}`)
 								})
 							setTabResetToken(nanoid())
 						} else if (copyFromButton[1] === 'cut') {
-							moveControlMutation
-								.mutateAsync({ fromLocation: copyFromButton[0], toLocation: selectedButton })
+							gridTransferMutation
+								.mutateAsync({
+									operation: 'move',
+									pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
+								})
 								.catch((e) => {
 									console.error(`move failed: ${e}`)
 								})
 							setCopyFromButton(null)
 							setTabResetToken(nanoid())
 						} else if (copyFromButton[1] === 'swap') {
-							swapControlMutation
-								.mutateAsync({ fromLocation: copyFromButton[0], toLocation: selectedButton })
+							gridTransferMutation
+								.mutateAsync({
+									operation: 'swap',
+									pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
+								})
 								.catch((e) => {
 									console.error(`swap failed: ${e}`)
 								})
@@ -346,10 +353,8 @@ export const ButtonsPage = observer(function ButtonsPage() {
 			}
 		},
 		[
-			resetControlMutation,
-			copyControlMutation,
-			moveControlMutation,
-			swapControlMutation,
+			resetControlsMutation,
+			gridTransferMutation,
 			selectedButton,
 			copyFromButton,
 			gridSize,
@@ -392,90 +397,84 @@ export const ButtonsPage = observer(function ButtonsPage() {
 	)
 
 	return (
-		<div className="flex flex-col h-full overflow-hidden">
-			<Grid.Row className="buttons-page split-panels grow min-h-0 h-full">
-				<GenericConfirmModal ref={clearModalRef} />
-				<ContextMenu
-					open={contextMenuOpen}
-					onOpenChange={setContextMenuOpen}
-					position={contextMenuPosition}
-					menuItems={contextMenuItems}
-				/>
+		<SplitPanels.Root showing={null} className="buttons-page" resize={{ storageKey: 'buttons' }}>
+			<GenericConfirmModal ref={clearModalRef} />
+			<ContextMenu
+				open={contextMenuOpen}
+				onOpenChange={setContextMenuOpen}
+				position={contextMenuPosition}
+				menuItems={contextMenuItems}
+			/>
 
-				{/* On large screens, show the grid in its own column */}
-				{isLargeScreen && (
-					<Grid.Col xs={12} xl={6} className="primary-panel h-full min-h-0">
-						{gridPanel}
-					</Grid.Col>
-				)}
+			{/* On large screens, show the grid in its own column */}
+			{isLargeScreen && <SplitPanels.Primary>{gridPanel}</SplitPanels.Primary>}
 
-				<Grid.Col xs={12} xl={6} className="secondary-panel h-full min-h-0">
-					<div className="secondary-panel-inner h-full min-h-0 flex flex-col overflow-hidden">
-						<TabArea.Root value={activeTab} onValueChange={setActiveTab}>
-							<TabArea.List>
-								{!isLargeScreen && (
-									<TabArea.Tab value="grid">
-										<FontAwesomeIcon icon={faThLarge} /> Buttons
-									</TabArea.Tab>
-								)}
+			<SplitPanels.Secondary>
+				<div className="secondary-panel-inner">
+					<TabArea.Root value={activeTab} onValueChange={setActiveTab}>
+						<TabArea.List>
+							{!isLargeScreen && (
+								<TabArea.Tab value="grid">
+									<FontAwesomeIcon icon={faThLarge} /> Buttons
+								</TabArea.Tab>
+							)}
+							{selectedButton && (
+								<TabArea.Tab value="edit">
+									<FontAwesomeIcon icon={faCalculator} /> Edit Button{' '}
+									{selectedButton ? `${formatLocation(selectedButton)}` : '?'}
+								</TabArea.Tab>
+							)}
+							<TabArea.Tab value="pages">
+								<FontAwesomeIcon icon={faLayerGroup} /> Pages
+							</TabArea.Tab>
+							<TabArea.Tab value="page-variables">
+								<FontAwesomeIcon icon={faDollarSign} /> Page Variables
+							</TabArea.Tab>
+							<TabArea.Tab value="presets">
+								<FontAwesomeIcon icon={faGift} /> Presets
+							</TabArea.Tab>
+							<TabArea.Tab value="action-recorder">
+								<FontAwesomeIcon icon={faVideoCamera} /> Recorder
+							</TabArea.Tab>
+						</TabArea.List>
+
+						{/* On small screens, show the grid in its own tab */}
+						{!isLargeScreen && <TabArea.Panel value="grid">{gridPanel}</TabArea.Panel>}
+						<TabArea.Panel value="edit">
+							<MyErrorBoundary>
 								{selectedButton && (
-									<TabArea.Tab value="edit">
-										<FontAwesomeIcon icon={faCalculator} /> Edit Button{' '}
-										{selectedButton ? `${formatLocation(selectedButton)}` : '?'}
-									</TabArea.Tab>
+									<EditButton
+										key={`${formatLocation(selectedButton)}-${tabResetToken}`}
+										location={selectedButton}
+										onKeyUp={handleKeyDownInButtons}
+										navigateToControl={navigateToControl}
+									/>
 								)}
-								<TabArea.Tab value="pages">
-									<FontAwesomeIcon icon={faLayerGroup} /> Pages
-								</TabArea.Tab>
-								<TabArea.Tab value="page-variables">
-									<FontAwesomeIcon icon={faDollarSign} /> Page Variables
-								</TabArea.Tab>
-								<TabArea.Tab value="presets">
-									<FontAwesomeIcon icon={faGift} /> Presets
-								</TabArea.Tab>
-								<TabArea.Tab value="action-recorder">
-									<FontAwesomeIcon icon={faVideoCamera} /> Recorder
-								</TabArea.Tab>
-							</TabArea.List>
-
-							{/* On small screens, show the grid in its own tab */}
-							{!isLargeScreen && <TabArea.Panel value="grid">{gridPanel}</TabArea.Panel>}
-							<TabArea.Panel value="edit">
-								<MyErrorBoundary>
-									{selectedButton && (
-										<EditButton
-											key={`${formatLocation(selectedButton)}-${tabResetToken}`}
-											location={selectedButton}
-											onKeyUp={handleKeyDownInButtons}
-											navigateToControl={navigateToControl}
-										/>
-									)}
-								</MyErrorBoundary>
-							</TabArea.Panel>
-							<TabArea.Panel value="pages">
-								<MyErrorBoundary>
-									<PagesList setPageNumber={setPageNumber} />
-								</MyErrorBoundary>
-							</TabArea.Panel>
-							<TabArea.Panel value="page-variables">
-								<MyErrorBoundary>
-									<PageVariablesPanel pageNumber={pageNumber} />
-								</MyErrorBoundary>
-							</TabArea.Panel>
-							<TabArea.Panel value="presets">
-								<MyErrorBoundary>
-									<ConnectionPresets resetToken={tabResetToken} />
-								</MyErrorBoundary>
-							</TabArea.Panel>
-							<TabArea.Panel value="action-recorder" className="pt-0">
-								<MyErrorBoundary>
-									<ActionRecorder />
-								</MyErrorBoundary>
-							</TabArea.Panel>
-						</TabArea.Root>
-					</div>
-				</Grid.Col>
-			</Grid.Row>
-		</div>
+							</MyErrorBoundary>
+						</TabArea.Panel>
+						<TabArea.Panel value="pages">
+							<MyErrorBoundary>
+								<PagesList setPageNumber={setPageNumber} />
+							</MyErrorBoundary>
+						</TabArea.Panel>
+						<TabArea.Panel value="page-variables">
+							<MyErrorBoundary>
+								<PageVariablesPanel pageNumber={pageNumber} />
+							</MyErrorBoundary>
+						</TabArea.Panel>
+						<TabArea.Panel value="presets">
+							<MyErrorBoundary>
+								<ConnectionPresets resetToken={tabResetToken} />
+							</MyErrorBoundary>
+						</TabArea.Panel>
+						<TabArea.Panel value="action-recorder" className="pt-0">
+							<MyErrorBoundary>
+								<ActionRecorder />
+							</MyErrorBoundary>
+						</TabArea.Panel>
+					</TabArea.Root>
+				</div>
+			</SplitPanels.Secondary>
+		</SplitPanels.Root>
 	)
 })

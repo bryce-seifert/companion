@@ -177,7 +177,7 @@ export const ImageLibraryEditor = observer(function ImageLibraryEditor({
 				<input ref={fileInputRef} type="file" accept="image/*" onChange={handleReplaceImage} className="hidden" />
 			</div>
 
-			<Form className="row mb-4">
+			<Form row className="mb-4">
 				<FormLabel htmlFor={imageNameFieldId} sm={4} column="sm">
 					Name
 				</FormLabel>
@@ -196,7 +196,7 @@ export const ImageLibraryEditor = observer(function ImageLibraryEditor({
 					/>
 				</Grid.Col>
 			</Form>
-			<Form className="row mb-4">
+			<Form row className="mb-4">
 				<FormLabel htmlFor={descriptionFieldId} sm={4} column="sm">
 					Description
 				</FormLabel>
@@ -208,7 +208,7 @@ export const ImageLibraryEditor = observer(function ImageLibraryEditor({
 					/>
 				</Grid.Col>
 			</Form>
-			<Form className="row mb-4">
+			<Form row className="mb-4">
 				<FormLabel htmlFor={backgroundColorFieldId} sm={4} column="sm">
 					Preview background
 				</FormLabel>

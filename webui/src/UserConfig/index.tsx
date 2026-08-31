@@ -7,6 +7,7 @@ import { Grid } from '~/Components/Grid'
 import { PageHeader } from '~/Layout/PageHeader.js'
 
 export function SettingsSelectPage(): React.JSX.Element {
+	// Not a split: one readable-width column of cards, so this stays on the 12-column grid.
 	return (
 		<div className="page-shell">
 			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings" />
@@ -20,7 +21,7 @@ export function SettingsSelectPage(): React.JSX.Element {
 						</p>
 					</div>
 
-					<Grid.Row className="g-3">
+					<Grid.Row className="gap-3">
 						<SettingsLinkCard
 							label="General"
 							description="Installation name, mDNS announcements, timezone, export options, and telemetry."

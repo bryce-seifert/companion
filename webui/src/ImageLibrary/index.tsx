@@ -2,13 +2,12 @@ import { faImages } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Outlet, useMatchRoute, useNavigate } from '@tanstack/react-router'
 import './image-library.css'
-import classNames from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { useCallback } from 'react'
-import { Grid } from '~/Components/Grid'
 import { useTwoPanelMode } from '~/Hooks/useLayoutMode'
 import { PageHeader } from '~/Layout/PageHeader'
 import { CloseButton, ContextHelpButton } from '~/Layout/PanelIcons'
+import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error'
 import { ImageLibraryGrid } from './ImageLibraryGrid'
 
@@ -41,36 +40,30 @@ export const ImageLibraryPage = observer(function ImageLibraryPage() {
 	}, [navigate])
 
 	const twoPanelMode = useTwoPanelMode()
-	const showPrimaryPanel = twoPanelMode || !selectedImageName
-
 	return (
 		<div className="page-shell">
 			<PageHeader icon={faImages} title="Image Library" helpAction="/user-guide/config/image-library" />
 
-			<div className="flex-1 min-h-0 overflow-y-auto">
-				<Grid.Row className="image-library-page split-panels flex-1 min-h-0 !h-auto">
-					<Grid.Col
-						xs={12}
-						xl={selectedImageName ? 6 : 12}
-						className={classNames('primary-panel h-full min-h-0', showPrimaryPanel ? 'block' : 'hidden xl:block')}
-					>
-						<MyErrorBoundary>
-							<ImageLibraryGrid selectedImageName={selectedImageName} onSelectImage={handleSelectImage} />
-						</MyErrorBoundary>
-					</Grid.Col>
+			<SplitPanels.Root
+				showing={selectedImageName ? 'secondary' : 'primary'}
+				className="image-library-page"
+				resize={{ storageKey: 'image-library' }}
+			>
+				<SplitPanels.Primary>
+					<MyErrorBoundary>
+						<ImageLibraryGrid selectedImageName={selectedImageName} onSelectImage={handleSelectImage} />
+					</MyErrorBoundary>
+				</SplitPanels.Primary>
 
-					{!!selectedImageName && (
-						<Grid.Col xs={12} xl={6} className={'secondary-panel h-full min-h-0 block'}>
-							<div className="secondary-panel-simple h-full min-h-0 flex flex-col overflow-hidden border border-border/70 rounded-lg bg-surface">
-								<ImageEditPanelHeading doClose={doCloseImage} twoPanelMode={twoPanelMode} />
-								<MyErrorBoundary>
-									<Outlet />
-								</MyErrorBoundary>
-							</div>
-						</Grid.Col>
-					)}
-				</Grid.Row>
-			</div>
+				<SplitPanels.Secondary>
+					<div className="secondary-panel-simple">
+						{!!selectedImageName && <ImageEditPanelHeading doClose={doCloseImage} twoPanelMode={twoPanelMode} />}
+						<MyErrorBoundary>
+							<Outlet />
+						</MyErrorBoundary>
+					</div>
+				</SplitPanels.Secondary>
+			</SplitPanels.Root>
 		</div>
 	)
 })

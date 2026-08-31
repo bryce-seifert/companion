@@ -108,13 +108,7 @@ export class ControlsController {
 
 	/** Resolve a page's local-variable entities (its `page:<pageId>` control), for `$(page:x)` injection. */
 	readonly #getPageVariableEntities = (pageNumber: number): ControlEntityInstance[] | null => {
-		const pageId = this.#deps.pageStore.getPageId(pageNumber)
-		if (!pageId) return null
-
-		const control = this.#store.getControl(CreatePageControlId(pageId))
-		if (!control || !control.supportsEntities) return null
-
-		return control.entities.getLocalVariableEntities()
+		return this.#store.getPageVariableEntities(pageNumber)
 	}
 
 	constructor(
@@ -262,7 +256,7 @@ export class ControlsController {
 				this.#deps.instance.definitions,
 				this.#controlEvents,
 				this,
-				this.#factory
+				this.#deps.userconfig
 			),
 
 			watchControl: publicProcedure

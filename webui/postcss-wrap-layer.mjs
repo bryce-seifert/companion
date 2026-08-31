@@ -15,7 +15,7 @@ import postcss from 'postcss'
  *
  * Deliberately NOT wrapped (return null → left unlayered, i.e. above every layer during migration):
  *   - tailwind.css / utilities.css        manage their own layering (or must stay on top).
- *   - base.css / coreui-layout.css        already imported into their own layers by tailwind.css.
+ *   - base.css / layout-grid.css          already imported into their own layers by tailwind.css.
  *   - breakpoints.css                     only @custom-media definitions, no rules.
  *   - *.module.css                        CSS Modules are scoped; no collision with utilities.
  *   - anything that isn't a plain .css    (images, etc.) — left untouched.
@@ -29,10 +29,13 @@ const APP_BASE = new Set([
 	'transitions.css',
 	'loading.css',
 	'App.css',
+	// Split out of layout.css into a file co-located with the component, but must stay in the layer
+	// it always sat in — page CSS (features) relies on being able to override it (see Layout/SplitPanels.css).
+	'Layout/SplitPanels.css',
 ])
 
 // Files that must not be wrapped, keyed by basename.
-const EXCLUDE = new Set(['tailwind.css', 'utilities.css', 'breakpoints.css', 'base.css', 'coreui-layout.css'])
+const EXCLUDE = new Set(['tailwind.css', 'utilities.css', 'breakpoints.css', 'base.css', 'layout-grid.css'])
 
 // At-rules that must stay at the top level of the file rather than being nested inside @layer.
 const HOIST = new Set(['charset', 'import', 'namespace', 'layer', 'custom-media', 'custom-selector'])
