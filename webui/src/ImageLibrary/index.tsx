@@ -75,7 +75,7 @@ interface ImageEditPanelHeadingProps {
 
 function ImageEditPanelHeading({ doClose, twoPanelMode }: ImageEditPanelHeadingProps) {
 	return (
-		<div className="secondary-panel-simple-header compact">
+		<div className="secondary-panel-simple-header panel-header-compact">
 			<div className="flex items-center gap-2">
 				<span className="panel-icon-button">
 					<FontAwesomeIcon icon={faImages} />

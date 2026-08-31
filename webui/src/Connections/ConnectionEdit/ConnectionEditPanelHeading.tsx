@@ -22,7 +22,7 @@ export const ConnectionEditPanelHeading = observer(function ConnectionEditPanelH
 	const status = instanceStatuses.getStatus(connectionInfo.id)
 
 	return (
-		<div className="secondary-panel-simple-header compact stacked">
+		<div className="secondary-panel-simple-header panel-header-compact panel-header-stacked">
 			<div className="flex items-center gap-2.5 min-w-0 pr-8">
 				<h3 className="text-base font-bold truncate text-body mb-0">{connectionInfo.label}</h3>
 				<InstanceTableStatusCell isEnabled={connectionInfo.enabled !== false} status={status} />

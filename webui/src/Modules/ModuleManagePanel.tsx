@@ -74,7 +74,7 @@ const ModuleManagePanelInner = observer(function ModuleManagePanelInner({
 
 	return (
 		<>
-			<div className="secondary-panel-simple-header compact">
+			<div className="secondary-panel-simple-header panel-header-compact">
 				<div className="flex items-center gap-2 min-w-0 pr-16">
 					<span className="module-type-chip">{capitalize(moduleType)}</span>
 					<h3 className="text-base font-bold truncate text-body mb-0">{baseInfo?.name ?? moduleId}</h3>
