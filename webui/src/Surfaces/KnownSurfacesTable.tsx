@@ -190,8 +190,9 @@ const ManualGroupRow = observer(function ManualGroupRow({
 				</div>
 				<div className="grid-cell">
 					<ButtonGroup>
-						<Button onClick={deleteGroup2} title="Delete group">
-							<FontAwesomeIcon icon={faTrash} />
+						<Button onClick={deleteGroup2} size="sm" color="danger" title="Delete group">
+							<FontAwesomeIcon icon={faTrash} className="me-1.5" />
+							<span>Delete Group</span>
 						</Button>
 					</ButtonGroup>
 				</div>
@@ -217,11 +218,11 @@ interface SurfaceRowProps {
 	surface: ClientSurfaceItem
 	index: number | null
 	isInGroup: boolean
-	deleteEmulator: (surfaceId: string) => void
-	forgetSurface: (surfaceId: string) => void
-	noBorder: boolean
+	deleteEmulator: (id: string) => void
+	forgetSurface: (id: string) => void
+	noBorder?: boolean
 	isSelected: boolean
-	selectItem: (itemId: string | null) => void
+	selectItem: (id: string) => void
 }
 
 const SurfaceRow = observer(function SurfaceRow({
@@ -265,7 +266,7 @@ const SurfaceRow = observer(function SurfaceRow({
 			onClick={handleSurfaceClick}
 			title={`${surface.id}: click to edit surface settings.`}
 		>
-			<div className="grid-cell">
+			<div className="grid-cell font-mono tabular-nums text-xs text-muted/70">
 				{index !== null ? `#${index}` : ''}
 				{/* Show disabled icon for surfaces that respect the enabled setting and are disabled */}
 				{surfaceDisabled && (
@@ -276,7 +277,9 @@ const SurfaceRow = observer(function SurfaceRow({
 			</div>
 			<div className={classNames('grid-cell', { 'ps-6': isInGroup })}>
 				<div>
-					<b>{surface.name ? `${surface.name} - (${surface.type})` : surface.type}</b>
+					<b className="text-sm font-semibold text-body-strong">
+						{surface.name ? `${surface.name} - (${surface.type})` : surface.type}
+					</b>
 					{!!surface.hasFirmwareUpdates && (
 						<>
 							{' '}
@@ -287,9 +290,9 @@ const SurfaceRow = observer(function SurfaceRow({
 					)}
 				</div>
 				<div className="surface-id-row">
-					<span className="surface-id">{surface.id}</span>
+					<span className="surface-id font-mono tabular-nums text-2xs text-muted">{surface.id}</span>
 					<CopyButton size="sm" title="Copy surface id" text={surface.id} />
-					<span className={classNames('surface-status', { 'surface-disabled': surfaceDisabled })}>
+					<span className={classNames('surface-status tabular-nums', { 'surface-disabled': surfaceDisabled })}>
 						{surfaceDisabled ? 'Disabled' : surface.isConnected ? surface.location || 'Local' : 'Offline'}
 					</span>
 				</div>
@@ -302,18 +305,22 @@ const SurfaceRow = observer(function SurfaceRow({
 								<LinkButtonExternal
 									href={makeAbsolutePath(`/emulator/${surface.id.substring(9)}`)}
 									title="Open Emulator"
+									size="sm"
 								>
-									<FontAwesomeIcon icon={faFolderOpen} />
+									<FontAwesomeIcon icon={faFolderOpen} className="me-1.5" />
+									<span>Open</span>
 								</LinkButtonExternal>
-								<Button onClick={deleteEmulator2} title="Delete Emulator">
-									<FontAwesomeIcon icon={faTrash} />
+								<Button onClick={deleteEmulator2} size="sm" color="danger" title="Delete Emulator">
+									<FontAwesomeIcon icon={faTrash} className="me-1.5" />
+									<span>Delete</span>
 								</Button>
 							</>
 						)}
 					</ButtonGroup>
 				) : (
-					<Button onClick={forgetSurface2} title="Forget">
-						<FontAwesomeIcon icon={faTrash} />
+					<Button onClick={forgetSurface2} size="sm" color="secondary" title="Forget">
+						<FontAwesomeIcon icon={faTrash} className="me-1.5 text-rose-500" />
+						<span>Forget</span>
 					</Button>
 				)}
 			</div>

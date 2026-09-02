@@ -108,10 +108,15 @@ interface HelpWrapperProps extends React.ComponentProps<typeof InlineHelpCustom>
 }
 function HelpWrapper({ usePopover, children, className, ...props }: HelpWrapperProps) {
 	return usePopover ? (
-		<InlineHelpCustom {...props} className={classNames('context-help-button', className)}>
+		<InlineHelpCustom
+			{...props}
+			className={classNames('context-help-button inline-flex items-center self-center', className)}
+		>
 			{children}
 		</InlineHelpCustom>
 	) : (
-		<span className={classNames('context-help-button', className)}>{children}</span>
+		<span className={classNames('context-help-button inline-flex items-center self-center', className)}>
+			{children}
+		</span>
 	)
 }

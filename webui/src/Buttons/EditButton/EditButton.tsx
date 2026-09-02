@@ -1,10 +1,11 @@
 import { faFileArrowDown, faFileArrowUp, faFileLines, faSquarePlus } from '@fortawesome/free-solid-svg-icons'
 import './EditButton.css'
 import { observer } from 'mobx-react-lite'
-import { useContext, useRef } from 'react'
+import { useCallback, useContext, useRef } from 'react'
 import type { SomeButtonModel } from '@companion-app/shared/Model/ButtonModel.js'
 import type { ControlLocation } from '@companion-app/shared/Model/Common.js'
 import { StaticAlert } from '~/Components/Alert.js'
+import { Button } from '~/Components/Button.js'
 import { ButtonPreviewBase } from '~/Components/ButtonPreview.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
 import { Grid } from '~/Components/Grid'
@@ -14,6 +15,7 @@ import { useButtonImageForControlId } from '~/Hooks/useButtonImageForControlId.j
 import { useControlConfig } from '~/Hooks/useControlConfig.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { LoadingRetryOrError } from '~/Resources/Loading.js'
+import { trpc, useMutationExt } from '~/Resources/TRPC.js'
 import { KeyReceiver } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { ButtonReferenceEditor } from './ButtonReferenceEditor.js'
@@ -111,6 +113,13 @@ const EditButtonContent = observer(function EditButton({
 	runtimeProps,
 	navigateToControl,
 }: EditButtonContentProps) {
+	const resetControlsMutation = useMutationExt(trpc.controls.resetControls.mutationOptions())
+	const changeToRegularButton = useCallback(() => {
+		resetControlsMutation.mutateAsync({ locations: [location], newType: 'button-layered' }).catch((e) => {
+			console.error('Failed to change button type', e)
+		})
+	}, [resetControlsMutation, location])
+
 	return (
 		<>
 			<div className="flex mb-0">
@@ -146,22 +155,37 @@ const EditButtonContent = observer(function EditButton({
 
 			{config.type === 'pageup' && (
 				<NonIdealState icon={faFileArrowUp}>
-					<h4 className="my-1">Page up button</h4>
-					<p className="my-3">No configuration available for page up buttons</p>
+					<h4 className="my-1 font-semibold text-body">Page up button</h4>
+					<p className="my-2 text-sm text-muted">
+						Page up buttons automatically navigate to the previous page when pressed.
+					</p>
+					<Button color="secondary" size="sm" onClick={changeToRegularButton} className="mt-2">
+						Change to regular button
+					</Button>
 				</NonIdealState>
 			)}
 
 			{config.type === 'pagenum' && (
 				<NonIdealState icon={faFileLines}>
-					<h4 className="my-1">Page number button</h4>
-					<p className="my-3">No configuration available for page number buttons</p>
+					<h4 className="my-1 font-semibold text-body">Page number button</h4>
+					<p className="my-2 text-sm text-muted">
+						Page number buttons display the current active page number on your control surface.
+					</p>
+					<Button color="secondary" size="sm" onClick={changeToRegularButton} className="mt-2">
+						Change to regular button
+					</Button>
 				</NonIdealState>
 			)}
 
 			{config.type === 'pagedown' && (
 				<NonIdealState icon={faFileArrowDown}>
-					<h4 className="my-1">Page down button</h4>
-					<p className="my-3">No configuration available for page down buttons</p>
+					<h4 className="my-1 font-semibold text-body">Page down button</h4>
+					<p className="my-2 text-sm text-muted">
+						Page down buttons automatically navigate to the next page when pressed.
+					</p>
+					<Button color="secondary" size="sm" onClick={changeToRegularButton} className="mt-2">
+						Change to regular button
+					</Button>
 				</NonIdealState>
 			)}
 

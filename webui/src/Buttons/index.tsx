@@ -1,17 +1,10 @@
 import { useDragDropMonitor } from '@dnd-kit/react'
-import {
-	faCalculator,
-	faDollarSign,
-	faGift,
-	faLayerGroup,
-	faThLarge,
-	faVideoCamera,
-} from '@fortawesome/free-solid-svg-icons'
+import { faCalculator, faDollarSign, faGift, faThLarge, faVideoCamera } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useMatchRoute, useNavigate, type UseNavigateResult } from '@tanstack/react-router'
 import { observer } from 'mobx-react-lite'
 import { nanoid } from 'nanoid'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useRef, useState } from 'react'
 import { formatLocation } from '@companion-app/shared/ControlId.js'
 import type { ControlLocation } from '@companion-app/shared/Model/Common.js'
 import { ContextMenu } from '~/Components/ContextMenu.js'
@@ -27,8 +20,6 @@ import { ActionRecorder } from './ActionRecorder/index.js'
 import { ButtonsGridPanel } from './ButtonGridPanel.js'
 import { EditButton } from './EditButton/EditButton.js'
 import { parseGridButtonDroppableId } from './GridButtonDroppableId.js'
-import { useGridZoom } from './GridZoom.js'
-import { PagesList } from './Pages.js'
 import { PageVariablesPanel } from './PageVariablesPanel.js'
 import type { PresetDragItem } from './Presets/PresetDragItem.js'
 import { ConnectionPresets } from './Presets/Presets.js'
@@ -63,7 +54,6 @@ export const ButtonsPage = observer(function ButtonsPage() {
 	const { userConfig, pages, viewControl } = useContext(RootAppStoreContext)
 
 	const clearModalRef = useRef<GenericConfirmModalRef>(null)
-	const [gridZoomController, gridZoomValue] = useGridZoom('grid')
 
 	const isLargeScreen = useTwoPanelMode()
 
@@ -118,15 +108,16 @@ export const ButtonsPage = observer(function ButtonsPage() {
 		[setPageNumber]
 	)
 	const clearSelectedButton = useCallback(() => {
-		doChangeTab('pages')
-	}, [doChangeTab])
-
-	// When screen becomes large, switch away from grid tab since it's now in its own column
-	useEffect(() => {
-		if (isLargeScreen && activeTab === 'grid') {
-			setActiveTab('pages')
+		setSelectedButton(null)
+		if (!isLargeScreen) {
+			doChangeTab('grid')
+		} else {
+			doChangeTab('page-variables') // Fallback tab on large screens when no button is selected
 		}
-	}, [isLargeScreen, activeTab])
+	}, [doChangeTab, isLargeScreen])
+
+	// When screen becomes large, we can allow activeTab to be 'grid' which will collapse the right panel.
+	// We don't force it away anymore.
 
 	const gridSize = userConfig.properties?.gridSize
 
@@ -191,163 +182,152 @@ export const ButtonsPage = observer(function ButtonsPage() {
 				return
 			}
 
-			if (isControlOrCommandCombo && e.key === '=') {
-				e.preventDefault()
-				gridZoomController.zoomIn(true)
-			} else if (isControlOrCommandCombo && e.key === '-') {
-				e.preventDefault()
-				gridZoomController.zoomOut(true)
-			} else if (isControlOrCommandCombo && e.key === '0') {
-				e.preventDefault()
-				gridZoomController.zoomReset()
-			} else {
-				switch (e.key) {
-					case 'Escape':
-						setCopyFromButton(null)
-						break
-					case 'ArrowDown':
-						setSelectedButton((selectedButton) => {
-							if (selectedButton && gridSize) {
-								return {
-									...selectedButton,
-									row: selectedButton.row >= gridSize.maxRow ? gridSize.minRow : selectedButton.row + 1,
-								}
-							} else {
-								return selectedButton
+			switch (e.key) {
+				case 'Escape':
+					setCopyFromButton(null)
+					break
+				case 'ArrowDown':
+					setSelectedButton((selectedButton) => {
+						if (selectedButton && gridSize) {
+							return {
+								...selectedButton,
+								row: selectedButton.row >= gridSize.maxRow ? gridSize.minRow : selectedButton.row + 1,
 							}
-						})
-						// TODO - ensure kept in view
-						break
-					case 'ArrowUp':
-						setSelectedButton((selectedButton) => {
-							if (selectedButton && gridSize) {
-								return {
-									...selectedButton,
-									row: selectedButton.row <= gridSize.minRow ? gridSize.maxRow : selectedButton.row - 1,
-								}
-							} else {
-								return selectedButton
-							}
-						})
-						// TODO - ensure kept in view
-						break
-					case 'ArrowLeft':
-						setSelectedButton((selectedButton) => {
-							if (selectedButton && gridSize) {
-								return {
-									...selectedButton,
-									column: selectedButton.column <= gridSize.minColumn ? gridSize.maxColumn : selectedButton.column - 1,
-								}
-							} else {
-								return selectedButton
-							}
-						})
-						// TODO - ensure kept in view
-						break
-					case 'ArrowRight':
-						setSelectedButton((selectedButton) => {
-							if (selectedButton && gridSize) {
-								return {
-									...selectedButton,
-									column: selectedButton.column >= gridSize.maxColumn ? gridSize.minColumn : selectedButton.column + 1,
-								}
-							} else {
-								return selectedButton
-							}
-						})
-						// TODO - ensure kept in view
-						break
-					case 'PageUp':
-						setSelectedButton((selectedButton) => {
-							if (selectedButton) {
-								const newPageNumber = selectedButton.pageNumber >= pages.data.length ? 1 : selectedButton.pageNumber + 1
-								setPageNumber(newPageNumber)
-								return {
-									...selectedButton,
-									pageNumber: newPageNumber,
-								}
-							} else {
-								return selectedButton
-							}
-						})
-						break
-					case 'PageDown':
-						setSelectedButton((selectedButton) => {
-							if (selectedButton) {
-								const newPageNumber = selectedButton.pageNumber <= 1 ? pages.data.length : selectedButton.pageNumber - 1
-								setPageNumber(newPageNumber)
-								return {
-									...selectedButton,
-									pageNumber: newPageNumber,
-								}
-							} else {
-								return selectedButton
-							}
-						})
-						break
-				}
-
-				if (selectedButton) {
-					// keyup with button selected
-
-					if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'Backspace' || e.key === 'Delete')) {
-						clearModalRef.current?.show(
-							`Clear button ${formatLocation(selectedButton)}`,
-							`This will clear the style, feedbacks and all actions`,
-							'Clear',
-							() => {
-								resetControlsMutation.mutateAsync({ locations: [selectedButton], newType: null }).catch((e) => {
-									console.error(`Reset failed: ${e}`)
-								})
-							}
-						)
-					}
-					if (isControlOrCommandCombo && e.key.toLowerCase() === 'c') {
-						console.log('prepare copy', selectedButton)
-						setCopyFromButton([selectedButton, 'copy'])
-					}
-					if (isControlOrCommandCombo && e.key.toLowerCase() === 'x') {
-						console.log('prepare cut', selectedButton)
-						setCopyFromButton([selectedButton, 'cut'])
-					}
-					if (isControlOrCommandCombo && e.key.toLowerCase() === 'v' && copyFromButton) {
-						console.log('do paste', copyFromButton, selectedButton)
-
-						if (copyFromButton[1] === 'copy') {
-							gridTransferMutation
-								.mutateAsync({
-									operation: 'copy',
-									pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
-								})
-								.catch((e) => {
-									console.error(`copy failed: ${e}`)
-								})
-							setTabResetToken(nanoid())
-						} else if (copyFromButton[1] === 'cut') {
-							gridTransferMutation
-								.mutateAsync({
-									operation: 'move',
-									pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
-								})
-								.catch((e) => {
-									console.error(`move failed: ${e}`)
-								})
-							setCopyFromButton(null)
-							setTabResetToken(nanoid())
-						} else if (copyFromButton[1] === 'swap') {
-							gridTransferMutation
-								.mutateAsync({
-									operation: 'swap',
-									pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
-								})
-								.catch((e) => {
-									console.error(`swap failed: ${e}`)
-								})
-							setCopyFromButton(null)
-							setTabResetToken(nanoid())
 						} else {
-							console.error('unknown paste operation:', copyFromButton[1])
+							return selectedButton
 						}
+					})
+					// TODO - ensure kept in view
+					break
+				case 'ArrowUp':
+					setSelectedButton((selectedButton) => {
+						if (selectedButton && gridSize) {
+							return {
+								...selectedButton,
+								row: selectedButton.row <= gridSize.minRow ? gridSize.maxRow : selectedButton.row - 1,
+							}
+						} else {
+							return selectedButton
+						}
+					})
+					// TODO - ensure kept in view
+					break
+				case 'ArrowLeft':
+					setSelectedButton((selectedButton) => {
+						if (selectedButton && gridSize) {
+							return {
+								...selectedButton,
+								column: selectedButton.column <= gridSize.minColumn ? gridSize.maxColumn : selectedButton.column - 1,
+							}
+						} else {
+							return selectedButton
+						}
+					})
+					// TODO - ensure kept in view
+					break
+				case 'ArrowRight':
+					setSelectedButton((selectedButton) => {
+						if (selectedButton && gridSize) {
+							return {
+								...selectedButton,
+								column: selectedButton.column >= gridSize.maxColumn ? gridSize.minColumn : selectedButton.column + 1,
+							}
+						} else {
+							return selectedButton
+						}
+					})
+					// TODO - ensure kept in view
+					break
+				case 'PageUp':
+					setSelectedButton((selectedButton) => {
+						if (selectedButton) {
+							const newPageNumber = selectedButton.pageNumber >= pages.data.length ? 1 : selectedButton.pageNumber + 1
+							setPageNumber(newPageNumber)
+							return {
+								...selectedButton,
+								pageNumber: newPageNumber,
+							}
+						} else {
+							return selectedButton
+						}
+					})
+					break
+				case 'PageDown':
+					setSelectedButton((selectedButton) => {
+						if (selectedButton) {
+							const newPageNumber = selectedButton.pageNumber <= 1 ? pages.data.length : selectedButton.pageNumber - 1
+							setPageNumber(newPageNumber)
+							return {
+								...selectedButton,
+								pageNumber: newPageNumber,
+							}
+						} else {
+							return selectedButton
+						}
+					})
+					break
+			}
+
+			if (selectedButton) {
+				// keyup with button selected
+
+				if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'Backspace' || e.key === 'Delete')) {
+					clearModalRef.current?.show(
+						`Clear button ${formatLocation(selectedButton)}`,
+						`This will clear the style, feedbacks and all actions`,
+						'Clear',
+						() => {
+							resetControlsMutation.mutateAsync({ locations: [selectedButton], newType: null }).catch((e) => {
+								console.error(`Reset failed: ${e}`)
+							})
+						}
+					)
+				}
+				if (isControlOrCommandCombo && e.key.toLowerCase() === 'c') {
+					console.log('prepare copy', selectedButton)
+					setCopyFromButton([selectedButton, 'copy'])
+				}
+				if (isControlOrCommandCombo && e.key.toLowerCase() === 'x') {
+					console.log('prepare cut', selectedButton)
+					setCopyFromButton([selectedButton, 'cut'])
+				}
+				if (isControlOrCommandCombo && e.key.toLowerCase() === 'v' && copyFromButton) {
+					console.log('do paste', copyFromButton, selectedButton)
+
+					if (copyFromButton[1] === 'copy') {
+						gridTransferMutation
+							.mutateAsync({
+								operation: 'copy',
+								pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
+							})
+							.catch((e) => {
+								console.error(`copy failed: ${e}`)
+							})
+						setTabResetToken(nanoid())
+					} else if (copyFromButton[1] === 'cut') {
+						gridTransferMutation
+							.mutateAsync({
+								operation: 'move',
+								pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
+							})
+							.catch((e) => {
+								console.error(`move failed: ${e}`)
+							})
+						setCopyFromButton(null)
+						setTabResetToken(nanoid())
+					} else if (copyFromButton[1] === 'swap') {
+						gridTransferMutation
+							.mutateAsync({
+								operation: 'swap',
+								pairs: [{ fromLocation: copyFromButton[0], toLocation: selectedButton }],
+							})
+							.catch((e) => {
+								console.error(`swap failed: ${e}`)
+							})
+						setCopyFromButton(null)
+						setTabResetToken(nanoid())
+					} else {
+						console.error('unknown paste operation:', copyFromButton[1])
 					}
 				}
 			}
@@ -359,7 +339,6 @@ export const ButtonsPage = observer(function ButtonsPage() {
 			copyFromButton,
 			gridSize,
 			setPageNumber,
-			gridZoomController,
 			pages.data.length,
 		]
 	)
@@ -390,14 +369,15 @@ export const ButtonsPage = observer(function ButtonsPage() {
 				changePage={setPageNumber}
 				onKeyDown={handleKeyDownInButtons}
 				clearSelectedButton={clearSelectedButton}
-				gridZoomController={gridZoomController}
-				gridZoomValue={gridZoomValue}
 			/>
 		</MyErrorBoundary>
 	)
 
 	return (
-		<SplitPanels.Root showing={null} resize={{ storageKey: 'buttons' }}>
+		<SplitPanels.Root
+			showing={activeTab === 'grid' && isLargeScreen ? 'primary' : null}
+			resize={{ storageKey: 'buttons' }}
+		>
 			<GenericConfirmModal ref={clearModalRef} />
 			<ContextMenu
 				open={contextMenuOpen}
@@ -413,20 +393,15 @@ export const ButtonsPage = observer(function ButtonsPage() {
 				<div className="secondary-panel-inner">
 					<TabArea.Root value={activeTab} onValueChange={setActiveTab}>
 						<TabArea.List>
-							{!isLargeScreen && (
-								<TabArea.Tab value="grid">
-									<FontAwesomeIcon icon={faThLarge} /> Buttons
-								</TabArea.Tab>
-							)}
+							<TabArea.Tab value="grid" className={isLargeScreen ? 'hidden' : ''}>
+								<FontAwesomeIcon icon={faThLarge} /> Buttons
+							</TabArea.Tab>
 							{selectedButton && (
 								<TabArea.Tab value="edit">
 									<FontAwesomeIcon icon={faCalculator} /> Edit Button{' '}
 									{selectedButton ? `${formatLocation(selectedButton)}` : '?'}
 								</TabArea.Tab>
 							)}
-							<TabArea.Tab value="pages">
-								<FontAwesomeIcon icon={faLayerGroup} /> Pages
-							</TabArea.Tab>
 							<TabArea.Tab value="page-variables">
 								<FontAwesomeIcon icon={faDollarSign} /> Page Variables
 							</TabArea.Tab>
@@ -450,11 +425,6 @@ export const ButtonsPage = observer(function ButtonsPage() {
 										navigateToControl={navigateToControl}
 									/>
 								)}
-							</MyErrorBoundary>
-						</TabArea.Panel>
-						<TabArea.Panel value="pages">
-							<MyErrorBoundary>
-								<PagesList setPageNumber={setPageNumber} />
 							</MyErrorBoundary>
 						</TabArea.Panel>
 						<TabArea.Panel value="page-variables">

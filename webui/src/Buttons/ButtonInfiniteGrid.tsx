@@ -37,9 +37,7 @@ interface ButtonInfiniteGridProps {
 	onButtonContextMenu?: (location: ControlLocation, x: number, y: number) => void
 	gridSize: UserConfigGridSize
 	ButtonIconFactory: React.ClassType<ButtonInfiniteGridButtonProps, any, any> // TODO - this type is flawed
-	drawScale: number
 	maxHeightToMatchCanvas?: boolean
-	setViewportMinHeight?: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfiniteGridProps>(
@@ -54,9 +52,7 @@ export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfini
 			onButtonContextMenu,
 			gridSize,
 			ButtonIconFactory,
-			drawScale,
 			maxHeightToMatchCanvas,
-			setViewportMinHeight,
 		},
 		ref
 	) {
@@ -64,26 +60,35 @@ export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfini
 		const countColumns = maxColumn - minColumn + 1
 		const countRows = maxRow - minRow + 1
 
-		const tileInnerSize = 72 * (drawScale ?? 1)
+		const [setSizeElement, windowSizeRaw] = useElementInnerSize()
+		const { scrollX: scrollXRaw, scrollY: scrollYRaw, setRef: setScrollRef } = useScrollPosition<HTMLDivElement>()
+
+		const autoScale = useMemo(() => {
+			if (windowSizeRaw.width <= 10 || windowSizeRaw.height <= 10) return 1
+			const SCROLLBAR_ESTIMATE = 16
+			const availableWidth = windowSizeRaw.width - SCROLLBAR_ESTIMATE
+			const availableHeight = windowSizeRaw.height - SCROLLBAR_ESTIMATE
+			// 72 is the base inner size, plus 2*3.6 approx padding
+			const baseTileSize = 79.2
+			const fitWidth = availableWidth / (countColumns * baseTileSize)
+			const fitHeight = availableHeight / (countRows * baseTileSize)
+
+			// Use the smaller scale so it fully fits, but cap at 300% to avoid absurdly huge buttons
+			return Math.min(3, Math.max(0.2, Math.min(fitWidth, fitHeight)))
+		}, [windowSizeRaw, countColumns, countRows])
+
+		// Auto scale replaces the manually passed drawScale
+		const effectiveDrawScale = autoScale
+
+		const tileInnerSize = 72 * effectiveDrawScale
 		const tilePadding = Math.min(6, tileInnerSize * 0.05)
 		const tileSize = tileInnerSize + tilePadding * 2
 		const SCROLLBAR_PADDING = 15
-
-		const [setSizeElement, windowSizeRaw] = useElementInnerSize()
-		const { scrollX: scrollXRaw, scrollY: scrollYRaw, setRef: setScrollRef } = useScrollPosition<HTMLDivElement>()
 
 		// Freeze visible area when hidden: keep last known valid (non-zero) size/scroll
 		// This prevents visible buttons from being unmounted when the grid is hidden (e.g., tab switch)
 		const lastValidWindowSize = useRef<{ width: number; height: number } | null>(null)
 		const lastValidScroll = useRef<{ x: number; y: number } | null>(null)
-
-		useEffect(() => {
-			if (setViewportMinHeight) {
-				setViewportMinHeight(2 * tileSize + SCROLLBAR_PADDING)
-			}
-		}, [setViewportMinHeight, tileSize])
-
-		// Update last valid values only when we have non-trivial sizes (grid is actually visible)
 		useEffect(() => {
 			if (windowSizeRaw.width > 10 && windowSizeRaw.height > 10) {
 				lastValidWindowSize.current = windowSizeRaw
@@ -120,7 +125,7 @@ export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfini
 		useEffect(() => {
 			if (!scrollerRef) return
 			const scrollerRef2 = scrollerRef
-			const drawScale2 = drawScale ?? 1
+			const drawScale2 = effectiveDrawScale ?? 1
 
 			// The maths isn't 100% pixel accurate, but its only a slight shift so is acceptable
 
@@ -135,7 +140,7 @@ export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfini
 					top: scrollerRef2.scrollTop / drawScale2,
 				}
 			}
-		}, [drawScale, scrollerRef])
+		}, [effectiveDrawScale, scrollerRef])
 
 		const setRef = useCallback(
 			(ref: HTMLDivElement) => {
@@ -222,16 +227,15 @@ export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfini
 				width: canvasWidth,
 				height: canvasHeight,
 				'--tile-inner-size': tileInnerSize,
-				'--grid-scale': drawScale,
+				'--grid-scale': effectiveDrawScale,
 			}),
-			[canvasWidth, canvasHeight, tileInnerSize, drawScale]
+			[canvasWidth, canvasHeight, tileInnerSize, effectiveDrawScale]
 		)
 		const gridWrapperStyle = useMemo(
 			() => ({
 				maxHeight: maxHeightToMatchCanvas ? countRows * tileSize + 2 * SCROLLBAR_PADDING : 'none', // Pad for possible scrollbar
-				maxWidth: canvasWidth + SCROLLBAR_PADDING,
 			}),
-			[maxHeightToMatchCanvas, countRows, tileSize, canvasWidth]
+			[maxHeightToMatchCanvas, countRows, tileSize]
 		)
 
 		return (

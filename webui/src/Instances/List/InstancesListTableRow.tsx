@@ -98,15 +98,31 @@ export const InstancesListTableRow = observer(function InstancesListTableRow<TMe
 			title={`Click to configure the ${moduleDisplayName}.`}
 		>
 			<div onClick={doEdit} className="flex flex-col grow min-w-0 flex-1">
-				<b className="truncate text-sm text-body">{instance.label}</b>
-				<div className="flex items-center gap-1.5 text-xs text-muted truncate">
+				<b className="truncate text-sm font-semibold text-body-strong">{instance.label}</b>
+				<div className="flex items-center gap-1.5 text-xs text-muted/80 font-normal truncate">
 					<span className="truncate">{moduleDisplayName}</span>
 				</div>
+				{instanceStatus &&
+					(instanceStatus.category === 'error' || instanceStatus.category === 'warning') &&
+					instanceStatus.message && (
+						<span
+							className={classNames(
+								'text-2xs font-medium truncate mt-0.5',
+								instanceStatus.category === 'warning'
+									? 'text-amber-600 dark:text-amber-400'
+									: 'text-rose-600 dark:text-rose-400'
+							)}
+						>
+							{typeof instanceStatus.message === 'string'
+								? instanceStatus.message
+								: JSON.stringify(instanceStatus.message)}
+						</span>
+					)}
 			</div>
 
 			<div
 				onClick={doEdit}
-				className="hidden lg:flex shrink-0 items-center justify-end gap-1 text-xs text-muted font-mono whitespace-nowrap table-cell-version"
+				className="hidden lg:flex shrink-0 items-center justify-end gap-1 text-2xs text-muted/70 font-mono tabular-nums whitespace-nowrap table-cell-version"
 			>
 				<MyErrorBoundary>
 					{moduleVersion?.isLegacy && (
@@ -119,7 +135,7 @@ export const InstancesListTableRow = observer(function InstancesListTableRow<TMe
 							<FontAwesomeIcon icon={faFlask} />{' '}
 						</span>
 					)}
-					<span className="truncate">{moduleVersion?.displayName ?? instance.moduleVersionId}</span>
+					<span className="truncate tabular-nums">{moduleVersion?.displayName ?? instance.moduleVersionId}</span>
 
 					<UpdateInstanceToLatestBadge instance={instance} />
 				</MyErrorBoundary>

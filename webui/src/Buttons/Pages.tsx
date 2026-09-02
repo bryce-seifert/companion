@@ -212,20 +212,22 @@ const PageListRow = observer(function PageListRow({
 					</div>
 					<ButtonGroup className="pages-list-actions ms-auto">
 						<Button color="secondary" size="sm" onClick={goToPage} title="Jump to page" data-page={pageNumber}>
-							<FontAwesomeIcon icon={faShareFromSquare} />
+							<FontAwesomeIcon icon={faShareFromSquare} className="me-1.5" />
+							<span>View</span>
 						</Button>
 						<Button
-							color="warning"
+							color="secondary"
 							size="sm"
 							onClick={doInsertPage}
 							title="Insert page after"
 							data-page={pageNumber + 1}
 						>
-							<FontAwesomeIcon icon={faPlus} />
+							<FontAwesomeIcon icon={faPlus} className="me-1.5" />
+							<span>Insert</span>
 						</Button>
 
 						<Button
-							color="primary"
+							color="danger"
 							size="sm"
 							onClick={doDeletePage}
 							title="Delete page"
@@ -233,7 +235,8 @@ const PageListRow = observer(function PageListRow({
 							data-name={info.name}
 							disabled={pageCount <= 1}
 						>
-							<FontAwesomeIcon icon={faTrash} />
+							<FontAwesomeIcon icon={faTrash} className="me-1.5" />
+							<span>Delete</span>
 						</Button>
 					</ButtonGroup>
 				</div>

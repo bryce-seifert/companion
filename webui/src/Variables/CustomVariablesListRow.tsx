@@ -62,16 +62,24 @@ export const CustomVariableRow = observer(function CustomVariableRow({ info }: C
 					<ButtonGroup className="float-right">
 						{isCollapsed ? (
 							<Button onClick={doExpand} size="sm" title="Expand variable view">
-								<FontAwesomeIcon icon={faExpandArrowsAlt} />
+								<FontAwesomeIcon icon={faExpandArrowsAlt} className="me-1.5" />
+								<span>Edit</span>
 							</Button>
 						) : (
 							<Button onClick={doCollapse} size="sm" title="Collapse variable view">
-								<FontAwesomeIcon icon={faCompressArrowsAlt} />
+								<FontAwesomeIcon icon={faCompressArrowsAlt} className="me-1.5" />
+								<span>Collapse</span>
 							</Button>
 						)}
 
-						<Button onClick={() => customVariablesApi.doDelete(info.id)} size="sm" title="Delete custom variable">
-							<FontAwesomeIcon icon={faTrash} />
+						<Button
+							onClick={() => customVariablesApi.doDelete(info.id)}
+							size="sm"
+							title="Delete custom variable"
+							className="text-rose-500 hover:bg-rose-500/10"
+						>
+							<FontAwesomeIcon icon={faTrash} className="me-1.5 text-rose-500" />
+							<span>Delete</span>
 						</Button>
 					</ButtonGroup>
 				</div>

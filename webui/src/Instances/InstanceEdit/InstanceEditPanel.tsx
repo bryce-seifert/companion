@@ -491,7 +491,7 @@ const InstanceFormButtons = observer(function InstanceFormButtons<TConfig extend
 						Unsaved Changes
 					</Badge>
 				) : (
-					<span className="text-xs text-muted select-none">All changes saved</span>
+					<span className="text-xs text-muted select-none">No unsaved changes</span>
 				)}
 			</div>
 

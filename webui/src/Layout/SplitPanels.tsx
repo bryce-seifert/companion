@@ -199,6 +199,37 @@ function ResizableSplitPanelsRoot({
 	}, [defaultPrimaryPercent, setPrimaryPercent])
 
 	const primaryPercentSafe = Number.isFinite(primaryPercent) ? primaryPercent : defaultPrimaryPercent
+
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLDivElement>) => {
+			let delta = 0
+			if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+				delta = e.shiftKey ? -10 : -2
+			} else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+				delta = e.shiftKey ? 10 : 2
+			} else if (e.key === 'Home') {
+				e.preventDefault()
+				setPrimaryPercent(20)
+				return
+			} else if (e.key === 'End') {
+				e.preventDefault()
+				setPrimaryPercent(80)
+				return
+			} else if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault()
+				setPrimaryPercent(defaultPrimaryPercent)
+				return
+			} else {
+				return
+			}
+
+			e.preventDefault()
+			const newPercent = Math.min(80, Math.max(20, primaryPercentSafe + delta))
+			setPrimaryPercent(newPercent)
+		},
+		[primaryPercentSafe, defaultPrimaryPercent, setPrimaryPercent]
+	)
+
 	const mergedStyle = resizable
 		? { ...style, gridTemplateColumns: gridTemplateColumnsFor(minPrimaryPx, minSecondaryPx, primaryPercentSafe) }
 		: style
@@ -222,8 +253,14 @@ function ResizableSplitPanelsRoot({
 					className="split-panels-resize-handle"
 					onPointerDown={handlePointerDown}
 					onDoubleClick={handleDoubleClick}
+					onKeyDown={handleKeyDown}
 					role="separator"
+					tabIndex={0}
 					aria-orientation="vertical"
+					aria-label="Resize panel split"
+					aria-valuenow={Math.round(primaryPercentSafe)}
+					aria-valuemin={20}
+					aria-valuemax={80}
 				/>
 			)}
 		</div>

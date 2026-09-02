@@ -198,13 +198,15 @@ function BackupsTableRow({ rule, index, editRule }: BackupsTableRowProps) {
 				<GenericConfirmModal ref={confirmRef} />
 			</div>
 			<div className="grow min-w-0" onClick={doEdit}>
-				<b className="text-sm text-body truncate block">{rule.name}</b>
-				<span className="text-xs text-muted">Format: {backupTypeLabel}</span>
+				<b className="text-sm font-semibold text-body-strong truncate block">{rule.name}</b>
+				<span className="text-xs text-muted/80 font-normal">Format: {backupTypeLabel}</span>
 			</div>
-			<div className="min-w-0 text-xs text-muted hidden sm:block" onClick={doEdit}>
+			<div className="min-w-0 text-xs text-muted/80 hidden sm:block font-mono tabular-nums" onClick={doEdit}>
 				<span>Cron: {rule.cron}</span>
 				{rule.lastRan && (
-					<span className="block text-2xs text-muted/70">Last run: {dayjs(rule.lastRan).format('MM/DD HH:mm:ss')}</span>
+					<span className="block text-2xs tabular-nums text-muted/70 font-sans">
+						Last run: {dayjs(rule.lastRan).format('MM/DD HH:mm:ss')}
+					</span>
 				)}
 			</div>
 			<div className="shrink-0 flex items-center gap-2">

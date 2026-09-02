@@ -26,7 +26,12 @@ export function PageTabs({ tabs, activeTab }: PageTabsProps): React.JSX.Element 
 			{tabs.map((tab) => {
 				const active = activeTab === tab.id
 				return (
-					<Link key={tab.id} to={tab.path} className={classnames('page-tab', active && 'active')}>
+					<Link
+						key={tab.id}
+						to={tab.path}
+						activeOptions={{ exact: true }}
+						className={classnames('page-tab', active && 'active')}
+					>
 						<FontAwesomeIcon icon={tab.icon} />
 						<span>{tab.label}</span>
 					</Link>

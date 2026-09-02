@@ -19,9 +19,7 @@ export const SettingsGeneralPage = memo(function UserConfig() {
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
 					<div className="primary-panel">
-						<PageIntro title="General Settings">
-							All setting modifications apply instantaneously across Companion.
-						</PageIntro>
+						<PageIntro title="General Settings">Settings take effect automatically as you change them.</PageIntro>
 						<UserConfigTable />
 					</div>
 				</div>

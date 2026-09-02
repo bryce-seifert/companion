@@ -335,7 +335,7 @@ function SidebarNavGroup({ name, icon, basePath, children }: SidebarNavGroupProp
 					<Popover.Popup side="right" align="center" sideOffset={12}>
 						<div className="sidebar-popover-menu">
 							<span className="text-3xs uppercase font-bold text-zinc-500 px-2.5 py-1 mb-1.5 select-none">{name}</span>
-							{children}
+							<ul className="sidebar-popover-list">{children}</ul>
 						</div>
 					</Popover.Popup>
 				</Popover.Root>

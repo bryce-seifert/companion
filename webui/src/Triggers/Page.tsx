@@ -311,7 +311,7 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 				className={classnames('flex flex-col grow min-w-0', { 'opacity-60': triggerOrCollectionDisabled })}
 				onClick={doEdit}
 			>
-				<b className="truncate text-sm text-body flex items-center gap-2">
+				<b className="truncate text-sm font-semibold text-body-strong flex items-center gap-2">
 					<span>{item.name}</span>
 					{item.isRateLimited && (
 						<span
@@ -322,9 +322,11 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 						</span>
 					)}
 				</b>
-				<span className="truncate text-xs text-muted" dangerouslySetInnerHTML={descriptionHtml} />
+				<span className="truncate text-xs text-muted/80 font-normal" dangerouslySetInnerHTML={descriptionHtml} />
 				{item.lastExecuted && (
-					<small className="text-2xs text-muted/70">Last run: {dayjs(item.lastExecuted).format(tableDateFormat)}</small>
+					<small className="text-2xs tabular-nums text-muted/70">
+						Last run: {dayjs(item.lastExecuted).format(tableDateFormat)}
+					</small>
 				)}
 			</div>
 
@@ -340,17 +342,19 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 				/>
 
 				<ButtonGroup>
+					<Button color="secondary" size="sm" onClick={doClone} title="Clone Trigger">
+						<FontAwesomeIcon icon={faClone} className="me-1.5" />
+						<span>Clone</span>
+					</Button>
 					<LinkButtonExternal
 						color="secondary"
 						size="sm"
 						href={makeAbsolutePath(`/int/export/triggers/single/${item.id}`)}
 						title="Export Trigger"
 					>
-						<FontAwesomeIcon icon={faDownload} />
+						<FontAwesomeIcon icon={faDownload} className="me-1.5" />
+						<span>Export</span>
 					</LinkButtonExternal>
-					<Button color="secondary" size="sm" onClick={doClone} title="Clone Trigger">
-						<FontAwesomeIcon icon={faClone} />
-					</Button>
 					<Button
 						color="secondary"
 						size="sm"
@@ -358,7 +362,8 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 						title="Delete Trigger"
 						className="text-rose-500 hover:bg-rose-500/10"
 					>
-						<FontAwesomeIcon icon={faTrash} />
+						<FontAwesomeIcon icon={faTrash} className="me-1.5 text-rose-500" />
+						<span>Delete</span>
 					</Button>
 				</ButtonGroup>
 			</div>

@@ -26,8 +26,11 @@
 
 /* The spinner some badges use in place of the dot. */
 .status-badge-spinner {
-	width: 10px;
-	height: 10px;
+	--spinner2-size: 0.75rem;
+	--spinner2-stroke: 0.125rem;
+	width: var(--spinner2-size);
+	height: var(--spinner2-size);
+	flex-shrink: 0;
 }
 
 /* The small square chip naming a module's type ("Connection" / "Surface"), shown beside a module or

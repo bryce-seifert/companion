@@ -85,12 +85,12 @@
 .button-grid-panel-content {
 	overflow: hidden;
 	align-self: center;
-	width: fit-content; /* ← sizes to child naturally */
-	max-width: 100%; /* ← but shrinks when container is smaller */
+	width: 100%;
+	max-width: 100%;
+	flex-grow: 1;
 	flex-shrink: 1;
-	min-width: 0;
+	min-height: 0;
 	border-radius: 8px;
-	/* min-height: 250px;  instead, set min-height in tsx to match button-sizes. */
 }
 
 .button-infinite-grid {

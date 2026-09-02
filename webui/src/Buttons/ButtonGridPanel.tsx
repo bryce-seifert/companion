@@ -2,9 +2,8 @@ import { faFileExport, faHome, faPencil, faTableCells } from '@fortawesome/free-
 import './ButtonGridPanel.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { observer } from 'mobx-react-lite'
-import React, { useCallback, useContext, useRef, useState } from 'react'
+import React, { useCallback, useContext, useRef } from 'react'
 import type { ControlLocation } from '@companion-app/shared/Model/Common.js'
-import { StaticAlert } from '~/Components/Alert.js'
 import { Button } from '~/Components/Button.js'
 import { ConfirmExportModal, type ConfirmExportModalRef } from '~/Components/ConfirmExportModal.js'
 import { Grid } from '~/Components/Grid'
@@ -15,10 +14,8 @@ import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { ButtonGridActions, type ButtonGridActionsRef } from './ButtonGridActions.js'
 import { ButtonGridHeader } from './ButtonGridHeader.js'
 import { ButtonGridResizePrompt } from './ButtonGridResizePrompt.js'
-import { ButtonGridZoomControl } from './ButtonGridZoomControl.js'
 import { ButtonInfiniteGrid, PrimaryButtonGridIcon, type ButtonInfiniteGridRef } from './ButtonInfiniteGrid.js'
 import { EditPagePropertiesModal, type EditPagePropertiesModalRef } from './EditPageProperties.js'
-import type { GridZoomController } from './GridZoom.js'
 
 interface ButtonsGridPanelProps {
 	pageNumber: number
@@ -28,8 +25,6 @@ interface ButtonsGridPanelProps {
 	changePage: (pageNumber: number) => void
 	selectedButton: ControlLocation | null
 	clearSelectedButton: () => void
-	gridZoomValue: number
-	gridZoomController: GridZoomController
 	copySourceButton?: ControlLocation | null
 	contextMenuButton?: ControlLocation | null
 	onButtonContextMenu?: (location: ControlLocation, x: number, y: number) => void
@@ -43,8 +38,6 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 	changePage,
 	selectedButton,
 	clearSelectedButton,
-	gridZoomValue,
-	gridZoomController,
 	copySourceButton,
 	contextMenuButton,
 	onButtonContextMenu,
@@ -107,7 +100,6 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 	const gridSize = userConfig.properties?.gridSize
 
 	const [hasBeenInView, isInViewRef] = useHasBeenRendered()
-	const [viewportMinHeight, setViewportMinHeight] = useState(250) // arbitrary initial min-height
 
 	return (
 		<KeyReceiver onKeyDown={onKeyDown} tabIndex={0} className="button-grid-panel">
@@ -122,25 +114,23 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 				<Grid.Row>
 					<Grid.Col sm={12}>
 						<ButtonGridHeader pageNumber={pageNumber} changePage={changePage2} setPage={setPage}>
-							<ButtonGridZoomControl
-								useCompactButtons={true}
-								gridZoomValue={gridZoomValue}
-								gridZoomController={gridZoomController}
-							/>
 							<Button color="light" onClick={resetPosition} title="Home Position" className="ms-1">
-								<FontAwesomeIcon icon={faHome} />
+								<FontAwesomeIcon icon={faHome} className="me-1.5" />
+								<span>Home</span>
 							</Button>
 							<Button color="light" onClick={configurePage} title="Edit Page" className="ms-1">
-								<FontAwesomeIcon icon={faPencil} />
+								<FontAwesomeIcon icon={faPencil} className="me-1.5" />
+								<span>Edit Page</span>
 							</Button>
 							<Button color="light" onClick={showExportModal} title="Export Page" className="ms-1">
-								<FontAwesomeIcon icon={faFileExport} />
+								<FontAwesomeIcon icon={faFileExport} className="me-1.5" />
+								<span>Export</span>
 							</Button>
 						</ButtonGridHeader>
 					</Grid.Col>
 				</Grid.Row>
 			</div>
-			<div className="button-grid-panel-content" style={{ minHeight: viewportMinHeight }}>
+			<div className="button-grid-panel-content">
 				{hasBeenInView && gridSize && (
 					<ButtonInfiniteGrid
 						ref={gridRef}
@@ -153,8 +143,6 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 						onButtonContextMenu={onButtonContextMenu}
 						gridSize={gridSize}
 						ButtonIconFactory={PrimaryButtonGridIcon}
-						drawScale={gridZoomValue / 100}
-						setViewportMinHeight={setViewportMinHeight}
 					/>
 				)}
 			</div>
@@ -165,12 +153,6 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 					pageNumber={pageNumber}
 					clearSelectedButton={clearSelectedButton}
 				/>
-
-				<StaticAlert color="info" className="mb-2">
-					You can use the arrow keys, pageup and pagedown to navigate with the keyboard, and use common key commands
-					such as copy, paste, and cut to rearrange buttons. You can also press the delete or backspace key with any
-					button highlighted to delete it.
-				</StaticAlert>
 			</div>
 		</KeyReceiver>
 	)

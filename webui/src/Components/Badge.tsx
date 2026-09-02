@@ -1,3 +1,5 @@
+import { faCheck, faCircleExclamation, faCircleMinus, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classNames from 'classnames'
 import './Badge.css'
 
@@ -21,6 +23,21 @@ const DOT_CLASSES: Record<BadgeTone, string> = {
 	disabled: 'bg-muted',
 }
 
+function getToneIcon(tone: BadgeTone): React.ReactNode {
+	switch (tone) {
+		case 'warning':
+			return <FontAwesomeIcon icon={faTriangleExclamation} className="text-3xs shrink-0" aria-hidden="true" />
+		case 'error':
+			return <FontAwesomeIcon icon={faCircleExclamation} className="text-3xs shrink-0" aria-hidden="true" />
+		case 'good':
+			return <FontAwesomeIcon icon={faCheck} className="text-3xs shrink-0" aria-hidden="true" />
+		case 'disabled':
+			return <FontAwesomeIcon icon={faCircleMinus} className="text-3xs shrink-0" aria-hidden="true" />
+		default:
+			return null
+	}
+}
+
 interface BadgeProps {
 	tone: BadgeTone
 	/** Optional leading element (a spinner, a pulsing dot); overrides the plain dot. */
@@ -32,9 +49,12 @@ interface BadgeProps {
 }
 
 export function Badge({ tone, indicator, dot, className, children }: BadgeProps): React.JSX.Element {
+	const toneIcon = getToneIcon(tone)
+
 	return (
 		<span className={classNames('status-badge', TONE_CLASSES[tone], className)}>
-			{indicator ?? (dot ? <span className={classNames('status-badge-dot', DOT_CLASSES[tone])} /> : null)}
+			{indicator ??
+				(toneIcon ? toneIcon : dot ? <span className={classNames('status-badge-dot', DOT_CLASSES[tone])} /> : null)}
 			{children}
 		</span>
 	)
