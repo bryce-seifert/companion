@@ -21,6 +21,7 @@ import { ContextData } from './ContextData.js'
 import { EntityDragLayer } from './Controls/Components/EntityDragLayer.js'
 import { TRPCConnectionStatus, useTRPCConnectionStatus } from './Hooks/useTRPCConnectionStatus.js'
 import { AdminLockContext } from './Layout/AdminLockContext.js'
+import { ConfigImportingOverlay, ConnectionLostOverlay } from './Layout/ConnectionLostOverlay.js'
 import { MySidebar, SidebarStateProvider, useSidebarState } from './Layout/Sidebar.js'
 import { PRIMARY_COLOR } from './Resources/Constants.js'
 import { MyErrorBoundary } from './Resources/Error.js'
@@ -65,30 +66,8 @@ export default function App(): React.JSX.Element {
 		<ContextData>
 			{(loadingProgress, loadingComplete) => (
 				<>
-					<div id="error-container" className={wasConnected ? 'show-error' : ''}>
-						<Grid.Row>
-							<Grid.Col md={{ span: 6, offset: 3 }}>
-								<div className="clearfix">
-									<h4 className="pt-4">Houston, we have a problem!</h4>
-									<p className="text-muted">It seems that we have lost connection to the companion app.</p>
-									<ul className="text-muted">
-										<li>Check that the application is still running</li>
-										<li>If you're using the Admin GUI over a network - check your connection</li>
-									</ul>
-								</div>
-							</Grid.Col>
-						</Grid.Row>
-					</div>
-					<div id="current-import-container" className={!wasConnected && currentImportTask ? 'show-error' : ''}>
-						<Grid.Row>
-							<Grid.Col md={{ span: 6, offset: 3 }}>
-								<div className="clearfix">
-									<h4 className="pt-4">Stand by, the config is being updated!</h4>
-									{/* <p className="text-muted">It seems that we have lost connection to the companion app.</p> */}
-								</div>
-							</Grid.Col>
-						</Grid.Row>
-					</div>
+					<ConnectionLostOverlay visible={wasConnected} />
+					<ConfigImportingOverlay visible={!wasConnected && !!currentImportTask} />
 					<Suspense
 						fallback={
 							<Grid.Row className={'loading'}>
