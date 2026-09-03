@@ -33,17 +33,21 @@ const UserConfigTable = observer(function UserConfigTable() {
 	if (!userConfigProps) return null
 
 	return (
-		<div className="w-full rounded-lg border border-border/70 bg-surface overflow-hidden p-4 space-y-4">
-			<Table className="table-settings mb-0">
-				<tbody>
-					<CompanionConfig {...userConfigProps} />
-				</tbody>
-			</Table>
-			<Table className="table-settings mb-0">
-				<tbody>
-					<DataCollectionConfig {...userConfigProps} />
-				</tbody>
-			</Table>
+		<div className="w-full space-y-4">
+			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+				<Table className="table-settings mb-0">
+					<tbody>
+						<CompanionConfig {...userConfigProps} />
+					</tbody>
+				</Table>
+			</div>
+			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+				<Table className="table-settings mb-0">
+					<tbody>
+						<DataCollectionConfig {...userConfigProps} />
+					</tbody>
+				</Table>
+			</div>
 		</div>
 	)
 })

@@ -7,7 +7,6 @@ import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { PageIntro } from '~/Layout/PageIntro'
 import { ContextHelpButton } from '~/Layout/PanelIcons.js'
-import { SplitPanels } from '~/Layout/SplitPanels.js'
 import { MyErrorBoundary } from '~/Resources/Error.js'
 import { useUserConfigProps } from './Context.js'
 import { ArtnetConfig } from './Sections/ArtnetConfig.js'
@@ -36,39 +35,37 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 				<SettingsNav activeTab="protocols" />
 
 				<div className="flex-1 min-h-0 overflow-y-auto">
-					<SplitPanels.Root showing={null} resize={{ storageKey: 'settings' }}>
-						<SplitPanels.Primary className="mb-3 xl:mb-0">
+					<div className="primary-panel space-y-6 pb-8">
+						<div>
 							<PageIntro
 								title="Protocols Settings"
 								titleSuffix={<ContextHelpButton action="/user-guide/config/settings#protocols" />}
 							>
 								Enable or disable network remote control endpoints for TCP, UDP, HTTP, OSC, Artnet, and Satellite.
 							</PageIntro>
-							<div className="rounded-lg border border-border/70 bg-surface overflow-hidden p-4">
+							<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
 								<UserConfigTable />
 							</div>
-						</SplitPanels.Primary>
+						</div>
 
-						<SplitPanels.Secondary>
-							<div className="rounded-lg border border-border/70 bg-surface overflow-hidden flex flex-col h-full">
-								<div className="flex items-center gap-2 p-3 bg-surface-muted/40 border-b border-border/70">
-									<span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-surface-muted text-muted text-xs">
-										<FontAwesomeIcon icon={faNetworkWired} />
-									</span>
-									<div>
-										<h4 className="text-sm font-bold text-body mb-0">Remote Control API Reference</h4>
-										<p className="text-xs text-muted mb-0">
-											Companion can be controlled remotely over several protocols. Select a protocol to see example
-											commands.
-										</p>
-									</div>
-								</div>
-								<div className="p-4 flex-1 min-h-0 overflow-y-auto">
-									<RemoteControlInfo />
+						<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+							<div className="flex items-center gap-3 p-4 bg-surface-muted/40 border-b border-border/70">
+								<span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-muted text-muted text-sm">
+									<FontAwesomeIcon icon={faNetworkWired} />
+								</span>
+								<div>
+									<h4 className="text-base font-bold text-body mb-0.5">Remote Control API Reference</h4>
+									<p className="text-xs text-muted mb-0">
+										Companion can be controlled remotely over several protocols. Select a protocol tab below to view
+										command syntax and endpoint documentation.
+									</p>
 								</div>
 							</div>
-						</SplitPanels.Secondary>
-					</SplitPanels.Root>
+							<div className="p-4">
+								<RemoteControlInfo />
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
