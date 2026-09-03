@@ -1,18 +1,11 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import './PageTabs.css'
 import { Link } from '@tanstack/react-router'
 import classnames from 'classnames'
-
-export interface PageTab {
-	id: string
-	label: string
-	path: string
-	icon: IconDefinition
-}
+import type { NavPage } from './navRegistry.js'
 
 export interface PageTabsProps {
-	tabs: readonly PageTab[]
+	tabs: readonly NavPage[]
 	activeTab: string
 }
 

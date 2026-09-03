@@ -8,8 +8,6 @@ import {
 	faClipboardList,
 	faClock,
 	faCloud,
-	faCog,
-	faDollarSign,
 	faExternalLinkSquare,
 	faFileImport,
 	faGamepad,
@@ -52,6 +50,8 @@ import { useLocalStorage } from '~/Hooks/useLocalStorage.js'
 import { makeAbsolutePath } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { ConnectionsTabNotifyIcon, SurfacesTabNotifyIcon } from '~/Surfaces/TabNotifyIcon.js'
+import { commandPaletteOpen } from './CommandPaletteState.js'
+import { SETTINGS_SECTION, VARIABLES_SECTION, type NavSection } from './navRegistry.js'
 import { SidebarFooter, SidebarHeader } from './SidebarHeader'
 import { useCompanionVersion } from './useCompanionVersion'
 
@@ -131,7 +131,7 @@ function SidebarSearchButton() {
 	const isNarrow = useContext(NarrowModeContext)
 
 	const openSearch = () => {
-		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
+		commandPaletteOpen.set(true)
 	}
 
 	return (
@@ -338,6 +338,17 @@ function SidebarSubMenuItem({ name, path, target }: SidebarSubMenuItemProps) {
 	)
 }
 
+/** A nav group whose sub-items are a section of the shared nav registry. */
+function SidebarSectionNavGroup({ section }: { section: NavSection }) {
+	return (
+		<SidebarNavGroup name={section.label} icon={section.icon} basePath={section.pages[0].path}>
+			{section.pages.map((page) => (
+				<SidebarSubMenuItem key={page.id} name={page.shortLabel ?? page.label} path={page.path} />
+			))}
+		</SidebarNavGroup>
+	)
+}
+
 interface SidebarNavGroupProps {
 	name: string
 	icon: IconDefinition
@@ -483,11 +494,7 @@ export const MySidebar = memo(function MySidebar() {
 					<li className="nav-title">Program</li>
 					<SidebarMenuItem name="Buttons" icon={faTableCells} path="/buttons" />
 					<SidebarMenuItem name="Triggers" icon={faClock} path="/triggers" />
-					<SidebarNavGroup name="Variables" icon={faDollarSign} basePath="/variables">
-						<SidebarSubMenuItem name="Browse" path="/variables" />
-						<SidebarSubMenuItem name="Custom" path="/variables/custom" />
-						<SidebarSubMenuItem name="Expressions" path="/variables/expression" />
-					</SidebarNavGroup>
+					<SidebarSectionNavGroup section={VARIABLES_SECTION} />
 
 					{/* Category: Connect */}
 					<li className="nav-title">Connect</li>
@@ -508,13 +515,7 @@ export const MySidebar = memo(function MySidebar() {
 					{/* Category: System */}
 					<li className="nav-title">System</li>
 					<SidebarMenuItem name="Log" icon={faClipboardList} path="/log" />
-					<SidebarNavGroup name="Settings" icon={faCog} basePath="/settings">
-						<SidebarSubMenuItem name="General" path="/settings/general" />
-						<SidebarSubMenuItem name="Buttons" path="/settings/buttons" />
-						<SidebarSubMenuItem name="Protocols" path="/settings/protocols" />
-						<SidebarSubMenuItem name="Backups" path="/settings/backups" />
-						<SidebarSubMenuItem name="Advanced" path="/settings/advanced" />
-					</SidebarNavGroup>
+					<SidebarSectionNavGroup section={SETTINGS_SECTION} />
 					<SidebarMenuItem name="Import / Export" icon={faFileImport} path="/import-export" />
 					<HelpSidebarMenuItem />
 					{window.localStorage.getItem('show_companion_cloud') === '1' && (

@@ -1,3 +1,4 @@
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import '../Modules/modules-manage.css'
 import './AddInstancePanel.css'
@@ -29,6 +30,7 @@ import { Button } from '~/Components/Button.js'
 import { SimpleDropdownInputField } from '~/Components/DropdownInputFieldSimple.js'
 import { Form } from '~/Components/Form.js'
 import { NonIdealState } from '~/Components/NonIdealState.js'
+import { PillButton, PillButtonGroup, type PillTone } from '~/Components/PillButton.js'
 import { SearchBox } from '~/Components/SearchBox.js'
 import { useTableVisibilityHelper } from '~/Components/TableVisibility.js'
 import { TextInputField } from '~/Components/TextInputField.js'
@@ -46,6 +48,103 @@ import { useModuleVersionSelectOptions } from './useModuleVersionSelectOptions.j
 
 type BroadcastCategory = 'popular' | 'video' | 'camera' | 'audio' | 'media' | 'lighting' | 'routing' | 'all'
 
+interface ModuleCategoryDefinition {
+	id: Exclude<BroadcastCategory, 'popular' | 'all'>
+	/** Label for the category tab */
+	label: string
+	/** Shorter label for the badge shown on each module entry */
+	badgeLabel: string
+	icon: IconDefinition
+	tone: PillTone
+	/** Matched as substrings against the module name, product and id */
+	keywords: readonly string[]
+}
+
+/** Rough classification of the module catalog, matched in order. */
+const MODULE_CATEGORIES: readonly ModuleCategoryDefinition[] = [
+	{
+		id: 'video',
+		tone: 'good',
+		label: 'Video Switchers',
+		badgeLabel: 'Video Switcher',
+		icon: faVideo,
+		keywords: ['atem', 'vmix', 'tricaster', 'switcher', 'ross', 'roland'],
+	},
+	{
+		id: 'camera',
+		tone: 'info',
+		label: 'Cameras & PTZ',
+		badgeLabel: 'PTZ & Camera',
+		icon: faCamera,
+		keywords: ['camera', 'ptz', 'visca', 'birddog', 'sony', 'panasonic', 'canon'],
+	},
+	{
+		id: 'audio',
+		tone: 'accent',
+		label: 'Audio & DSP',
+		badgeLabel: 'Audio & DSP',
+		icon: faVolumeHigh,
+		keywords: ['audio', 'mixer', 'yamaha', 'behringer', 'x32', 'wing', 'dante', 'soundcraft', 'q-sys', 'qsys', 'shure'],
+	},
+	{
+		id: 'media',
+		tone: 'media',
+		label: 'Playout & GFX',
+		badgeLabel: 'Playout & GFX',
+		icon: faTv,
+		keywords: [
+			'propresenter',
+			'obs',
+			'resolume',
+			'caspar',
+			'vlc',
+			'hyperdeck',
+			'playout',
+			'media',
+			'mitti',
+			'playback',
+		],
+	},
+	{
+		id: 'lighting',
+		tone: 'warning',
+		label: 'Lighting & DMX',
+		badgeLabel: 'Lighting & DMX',
+		icon: faLightbulb,
+		keywords: ['dmx', 'light', 'artnet', 'chamsys', 'grandma', 'etc', 'onyx', 'avolites'],
+	},
+	{
+		id: 'routing',
+		tone: 'routing',
+		label: 'Routing & Matrix',
+		badgeLabel: 'Routing & Matrix',
+		icon: faNetworkWired,
+		keywords: ['videohub', 'router', 'routing', 'matrix', 'aja', 'kumo', 'magewell', 'ndi'],
+	},
+]
+
+const POPULAR_KEYWORDS = [
+	'atem',
+	'obs',
+	'vmix',
+	'propresenter',
+	'ptzoptics',
+	'yamaha',
+	'x32',
+	'behringer',
+	'internal',
+	'hyperdeck',
+	'videohub',
+	'tricaster',
+	'companion',
+]
+
+const CATEGORY_TABS: readonly { id: BroadcastCategory; label: string; icon: IconDefinition; tone: PillTone }[] = [
+	{ id: 'popular', label: 'Popular', icon: faStar, tone: 'warning' },
+	...MODULE_CATEGORIES.map((cat) => ({ id: cat.id, label: cat.label, icon: cat.icon, tone: cat.tone })),
+	{ id: 'all', label: 'All', icon: faList, tone: 'primary' },
+]
+
 function getModuleCategory(item: FuzzyProduct): {
 	category: BroadcastCategory
 	isPopular: boolean
@@ -53,97 +152,14 @@ function getModuleCategory(item: FuzzyProduct): {
 } {
 	const str = `${item.name} ${item.product || ''} ${item.moduleId}`.toLowerCase()
 
-	const isPopular =
-		str.includes('atem') ||
-		str.includes('obs') ||
-		str.includes('vmix') ||
-		str.includes('propresenter') ||
-		str.includes('ptzoptics') ||
-		str.includes('yamaha') ||
-		str.includes('x32') ||
-		str.includes('behringer') ||
-		str.includes('internal') ||
-		str.includes('hyperdeck') ||
-		str.includes('videohub') ||
-		str.includes('tricaster') ||
-		str.includes('companion')
+	const isPopular = POPULAR_KEYWORDS.some((keyword) => str.includes(keyword))
+	const category = MODULE_CATEGORIES.find((cat) => cat.keywords.some((keyword) => str.includes(keyword)))
 
-	if (
-		str.includes('atem') ||
-		str.includes('vmix') ||
-		str.includes('tricaster') ||
-		str.includes('switcher') ||
-		str.includes('ross') ||
-		str.includes('roland')
-	) {
-		return { category: 'video', isPopular, badgeLabel: 'Video Switcher' }
+	return {
+		category: category?.id ?? 'all',
+		isPopular,
+		badgeLabel: category?.badgeLabel ?? 'Integration',
 	}
-	if (
-		str.includes('camera') ||
-		str.includes('ptz') ||
-		str.includes('visca') ||
-		str.includes('birddog') ||
-		str.includes('sony') ||
-		str.includes('panasonic') ||
-		str.includes('canon')
-	) {
-		return { category: 'camera', isPopular, badgeLabel: 'PTZ & Camera' }
-	}
-	if (
-		str.includes('audio') ||
-		str.includes('mixer') ||
-		str.includes('yamaha') ||
-		str.includes('behringer') ||
-		str.includes('x32') ||
-		str.includes('wing') ||
-		str.includes('dante') ||
-		str.includes('soundcraft') ||
-		str.includes('q-sys') ||
-		str.includes('qsys') ||
-		str.includes('shure')
-	) {
-		return { category: 'audio', isPopular, badgeLabel: 'Audio & DSP' }
-	}
-	if (
-		str.includes('propresenter') ||
-		str.includes('obs') ||
-		str.includes('resolume') ||
-		str.includes('caspar') ||
-		str.includes('vlc') ||
-		str.includes('hyperdeck') ||
-		str.includes('playout') ||
-		str.includes('media') ||
-		str.includes('mitti') ||
-		str.includes('playback')
-	) {
-		return { category: 'media', isPopular, badgeLabel: 'Playout & GFX' }
-	}
-	if (
-		str.includes('dmx') ||
-		str.includes('light') ||
-		str.includes('artnet') ||
-		str.includes('chamsys') ||
-		str.includes('grandma') ||
-		str.includes('etc') ||
-		str.includes('onyx') ||
-		str.includes('avolites')
-	) {
-		return { category: 'lighting', isPopular, badgeLabel: 'Lighting & DMX' }
-	}
-	if (
-		str.includes('videohub') ||
-		str.includes('router') ||
-		str.includes('routing') ||
-		str.includes('matrix') ||
-		str.includes('aja') ||
-		str.includes('kumo') ||
-		str.includes('magewell') ||
-		str.includes('ndi')
-	) {
-		return { category: 'routing', isPopular, badgeLabel: 'Routing & Matrix' }
-	}
-
-	return { category: 'all', isPopular, badgeLabel: 'Integration' }
 }
 
 interface AddInstancePanelProps {
@@ -181,9 +197,20 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 
 	// A module can support several devices
 	const allProducts = useAllModuleProducts(service.moduleType)
-	const typeProducts = allProducts.filter(
-		(p) => storeModulesOfTypeCount === 0 || !!p.installedInfo || typeFilter.visibility.available
+	const typeProducts = useMemo(
+		() =>
+			allProducts.filter((p) => storeModulesOfTypeCount === 0 || !!p.installedInfo || typeFilter.visibility.available),
+		[allProducts, storeModulesOfTypeCount, typeFilter.visibility.available]
 	)
+
+	// Classifying a product scans it against every category keyword, so do it once per product
+	const productCategories = useMemo(() => {
+		const categories = new Map<FuzzyProduct, ReturnType<typeof getModuleCategory>>()
+		for (const p of typeProducts) {
+			categories.set(p, getModuleCategory(p))
+		}
+		return categories
+	}, [typeProducts])
 
 	const totalModulesCount = useMemo(() => new Set(allProducts.map((p) => p.moduleId)).size, [allProducts])
 	const installedModulesCount = useMemo(
@@ -204,14 +231,13 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 			all: typeProducts.length,
 		}
 
-		for (const p of typeProducts) {
-			const cat = getModuleCategory(p)
+		for (const cat of productCategories.values()) {
 			if (cat.isPopular) counts.popular++
 			if (cat.category !== 'all') counts[cat.category]++
 		}
 
 		return counts
-	}, [typeProducts])
+	}, [typeProducts, productCategories])
 
 	// Filter products by selected category if not searching
 	const filteredByCategory = useMemo(() => {
@@ -219,11 +245,11 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 
 		if (selectedCategory === 'all') return typeProducts
 		if (selectedCategory === 'popular') {
-			return typeProducts.filter((p) => getModuleCategory(p).isPopular)
+			return typeProducts.filter((p) => productCategories.get(p)?.isPopular)
 		}
 
-		return typeProducts.filter((p) => getModuleCategory(p).category === selectedCategory)
-	}, [typeProducts, selectedCategory, filter])
+		return typeProducts.filter((p) => productCategories.get(p)?.category === selectedCategory)
+	}, [typeProducts, productCategories, selectedCategory, filter])
 
 	let candidates: React.JSX.Element[] = []
 	try {
@@ -327,22 +353,22 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 								</div>
 
 								{storeModulesOfTypeCount > 0 && (
-									<div className="type-filter-segmented">
-										<button
-											type="button"
+									<PillButtonGroup>
+										<PillButton
+											tone="primary"
+											active={typeFilter.visibility.available}
 											onClick={() => typeFilter.toggleVisibility('available', true)}
-											className={classNames('type-filter-btn', typeFilter.visibility.available && 'active')}
 										>
 											All Available ({totalModulesCount})
-										</button>
-										<button
-											type="button"
+										</PillButton>
+										<PillButton
+											tone="primary"
+											active={!typeFilter.visibility.available}
 											onClick={() => typeFilter.toggleVisibility('available', false)}
-											className={classNames('type-filter-btn', !typeFilter.visibility.available && 'active')}
 										>
 											Installed Only ({installedModulesCount})
-										</button>
-									</div>
+										</PillButton>
+									</PillButtonGroup>
 								)}
 							</div>
 
@@ -356,77 +382,19 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 
 							{/* Broadcast Domain Category Tabs */}
 							<div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('popular')}
-									className={classNames('category-tab-btn', selectedCategory === 'popular' && 'active-popular')}
-								>
-									<FontAwesomeIcon icon={faStar} className="text-2xs" />
-									<span>Popular ({categoryCounts.popular})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('video')}
-									className={classNames('category-tab-btn', selectedCategory === 'video' && 'active-video')}
-								>
-									<FontAwesomeIcon icon={faVideo} className="text-2xs" />
-									<span>Video Switchers ({categoryCounts.video})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('camera')}
-									className={classNames('category-tab-btn', selectedCategory === 'camera' && 'active-camera')}
-								>
-									<FontAwesomeIcon icon={faCamera} className="text-2xs" />
-									<span>Cameras & PTZ ({categoryCounts.camera})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('audio')}
-									className={classNames('category-tab-btn', selectedCategory === 'audio' && 'active-audio')}
-								>
-									<FontAwesomeIcon icon={faVolumeHigh} className="text-2xs" />
-									<span>Audio & DSP ({categoryCounts.audio})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('media')}
-									className={classNames('category-tab-btn', selectedCategory === 'media' && 'active-media')}
-								>
-									<FontAwesomeIcon icon={faTv} className="text-2xs" />
-									<span>Playout & GFX ({categoryCounts.media})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('lighting')}
-									className={classNames('category-tab-btn', selectedCategory === 'lighting' && 'active-lighting')}
-								>
-									<FontAwesomeIcon icon={faLightbulb} className="text-2xs" />
-									<span>Lighting & DMX ({categoryCounts.lighting})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('routing')}
-									className={classNames('category-tab-btn', selectedCategory === 'routing' && 'active-routing')}
-								>
-									<FontAwesomeIcon icon={faNetworkWired} className="text-2xs" />
-									<span>Routing & Matrix ({categoryCounts.routing})</span>
-								</button>
-
-								<button
-									type="button"
-									onClick={() => setSelectedCategory('all')}
-									className={classNames('category-tab-btn', selectedCategory === 'all' && 'active-all')}
-								>
-									<FontAwesomeIcon icon={faList} className="text-2xs" />
-									<span>All ({categoryCounts.all})</span>
-								</button>
+								{CATEGORY_TABS.map((tab) => (
+									<PillButton
+										key={tab.id}
+										tone={tab.tone}
+										active={selectedCategory === tab.id}
+										onClick={() => setSelectedCategory(tab.id)}
+									>
+										<FontAwesomeIcon icon={tab.icon} className="text-2xs" />
+										<span>
+											{tab.label} ({categoryCounts[tab.id]})
+										</span>
+									</PillButton>
+								))}
 							</div>
 						</div>
 
@@ -586,7 +554,12 @@ const AddInstanceEntry = observer(function AddInstanceEntry({ moduleInfo, addIns
 						</WindowLinkOpen>
 					)}
 					{showHelpForVersion?.helpPath && (
-						<button type="button" onClick={showHelpClick} className="add-instance-ghost-btn" title="View documentation">
+						<button
+							type="button"
+							onClick={showHelpClick}
+							className="panel-icon-button panel-icon-button-sm"
+							title="View documentation"
+						>
 							<BookOpen className="w-3.5 h-3.5" />
 						</button>
 					)}

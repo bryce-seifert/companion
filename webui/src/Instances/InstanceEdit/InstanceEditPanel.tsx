@@ -132,7 +132,7 @@ export const InstanceGenericEditPanel = observer(function InstanceGenericEditPan
 					performSave()
 				}}
 			>
-				<div className="flex-1 min-h-0 overflow-y-auto p-4">
+				<div className="page-scroll p-4">
 					{saveError && (
 						<StaticAlert color="danger" className="mb-4">
 							{saveError}
@@ -487,7 +487,7 @@ const InstanceFormButtons = observer(function InstanceFormButtons<TConfig extend
 		<div className="shrink-0 bg-surface border-t border-border px-4 py-3 z-10 flex items-center justify-between gap-3 shadow-lg">
 			<div className="flex items-center gap-2">
 				{isDirty ? (
-					<Badge tone="warning" dot className="select-none">
+					<Badge tone="warning" className="select-none">
 						Unsaved Changes
 					</Badge>
 				) : (

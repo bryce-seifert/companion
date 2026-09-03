@@ -237,7 +237,7 @@ export function ImportRemap({ snapshot, connectionRemap, setConnectionRemap }: I
 	}, [snapshot.connections])
 
 	return (
-		<div id="import_resolve" className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden my-4">
+		<div id="import_resolve" className="surface-card my-4">
 			<div className="p-4 border-b border-border/70 bg-surface-muted/30">
 				<h5 className="text-sm font-bold text-body mb-1">Connection Mapping</h5>
 				<p className="text-xs text-muted leading-relaxed mb-0">

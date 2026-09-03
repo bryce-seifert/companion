@@ -23,7 +23,7 @@ export function CloudPage(): React.JSX.Element {
 		<div className="page-shell">
 			<PageHeader icon={faCloud} title="Companion Cloud" />
 
-			<div className="flex-1 min-h-0 overflow-y-auto space-y-4 max-w-4xl pb-8">
+			<div className="page-scroll space-y-4 max-w-4xl pb-8">
 				{/* Deprecation notice banner */}
 				<div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
 					<FontAwesomeIcon icon={faTriangleExclamation} className="text-amber-500 text-lg mt-0.5 shrink-0" />
@@ -129,7 +129,7 @@ function AuthState({ authenticatedAs, cloudActive, clearError }: AuthStateProps)
 	const userId = useId()
 
 	return (
-		<div className="rounded-xl border border-border/70 bg-surface shadow-xs p-4 flex items-center justify-between flex-wrap gap-3">
+		<div className="surface-card p-4 flex items-center justify-between flex-wrap gap-3">
 			<div className="flex items-center gap-3">
 				<div className="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0">
 					<FontAwesomeIcon icon={faLock} />
@@ -173,7 +173,7 @@ function RegionsList({ regionIds, cloudActive, canActivate }: RegionsListProps) 
 	const setCloudActiveMutation = useMutationExt(trpc.cloud.setCloudActive.mutationOptions())
 
 	return (
-		<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+		<div className="surface-card">
 			<div className="p-4 border-b border-border/70 bg-surface-muted/30 flex items-center justify-between flex-wrap gap-2">
 				<div className="flex items-center gap-2.5">
 					<FontAwesomeIcon icon={faServer} className="text-muted text-sm" />
@@ -218,7 +218,7 @@ const SecretKeyPanel = memo(function SecretKeyPanel({ uuid }: { uuid: string }) 
 	const regenerateUUIDMutation = useMutationExt(trpc.cloud.regenerateUUID.mutationOptions())
 
 	return (
-		<div className="rounded-xl border border-border/70 bg-surface shadow-xs p-4 space-y-3">
+		<div className="surface-card p-4 space-y-3">
 			<div className="flex items-center gap-2.5">
 				<FontAwesomeIcon icon={faKey} className="text-muted text-sm" />
 				<h5 className="text-sm font-bold text-body mb-0">Super Secret Key</h5>

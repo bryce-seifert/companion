@@ -2,9 +2,10 @@ import { faDollarSign, faNetworkWired, faSquareRootVariable } from '@fortawesome
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router'
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { PageTabs, type PageTab } from '../PageTabs'
+import type { NavPage } from '../navRegistry.js'
+import { PageTabs } from '../PageTabs'
 
-const TABS: readonly PageTab[] = [
+const TABS: readonly NavPage[] = [
 	{ id: 'connections', label: 'Connection Variables', path: '/variables', icon: faNetworkWired },
 	{ id: 'custom', label: 'Custom Variables', path: '/variables/custom', icon: faDollarSign },
 	{ id: 'expression', label: 'Expression Variables', path: '/variables/expression', icon: faSquareRootVariable },

@@ -3,13 +3,8 @@ import {
 	faArrowRight,
 	faBorderAll,
 	faClock,
-	faCog,
 	faDollarSign,
 	faDownload,
-	faFileImport,
-	faGamepad,
-	faImages,
-	faList,
 	faMagnifyingGlass,
 	faPlug,
 	faRotate,
@@ -27,15 +22,13 @@ import { Modal } from '~/Components/Modal'
 import { trpc, useMutationExt } from '~/Resources/TRPC.js'
 import { makeAbsolutePath } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
-
-export interface CommandPaletteRef {
-	open(): void
-	close(): void
-}
+import { commandPaletteOpen } from './CommandPaletteState.js'
+import { ALL_NAV_PAGES } from './navRegistry.js'
+import { pageMatrixOpen } from './PageMatrixState.js'
 
 interface CommandItem {
 	id: string
-	category: 'Navigation' | 'Buttons' | 'Connections' | 'Variables' | 'Quick Actions'
+	category: 'Navigation' | 'Connections' | 'Variables' | 'Quick Actions'
 	title: string
 	subtitle?: string
 	icon: IconDefinition
@@ -44,37 +37,51 @@ interface CommandItem {
 }
 
 export const CommandPalette = observer(function CommandPalette() {
-	const { pages, connections, triggersList, variablesStore, notifier } = useContext(RootAppStoreContext)
-	const navigate = useNavigate()
-
-	const [isOpen, setIsOpen] = useState(false)
-	const [query, setQuery] = useState('')
-	const [selectedIndex, setSelectedIndex] = useState(0)
-
-	const rescanUsbMutation = useMutationExt(trpc.surfaces.rescanUsb.mutationOptions())
-	const clearLogMutation = useMutationExt(trpc.logs.clear.mutationOptions())
+	const isOpen = commandPaletteOpen.get()
 
 	// Global shortcut listener for Cmd+K / Ctrl+K and /
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
 				e.preventDefault()
-				setIsOpen((open) => !open)
-			} else if (e.key === '/' && !isOpen) {
+				commandPaletteOpen.set(!commandPaletteOpen.get())
+			} else if (e.key === '/' && !commandPaletteOpen.get()) {
 				const tag = (document.activeElement?.tagName || '').toLowerCase()
 				if (tag !== 'input' && tag !== 'textarea' && !document.activeElement?.hasAttribute('contenteditable')) {
 					e.preventDefault()
-					setIsOpen(true)
+					commandPaletteOpen.set(true)
 				}
 			}
 		}
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [isOpen])
+	}, [])
+
+	// Only build the (large) command catalog while the palette is actually open
+	if (!isOpen) return null
+
+	return <CommandPaletteContents />
+})
+
+const CommandPaletteContents = observer(function CommandPaletteContents() {
+	const { pages, connections, triggersList, variablesStore, notifier } = useContext(RootAppStoreContext)
+	const navigate = useNavigate()
+
+	const [query, setQuery] = useState('')
+	const [selectedIndex, setSelectedIndex] = useState(0)
+
+	const rescanUsbMutation = useMutationExt(trpc.surfaces.rescanUsb.mutationOptions())
+	const clearLogMutation = useMutationExt(trpc.logs.clear.mutationOptions())
+
+	// The mutation objects are recreated each render, so keep the catalog independent of their identity
+	const rescanUsbRef = useRef(rescanUsbMutation)
+	rescanUsbRef.current = rescanUsbMutation
+	const clearLogRef = useRef(clearLogMutation)
+	clearLogRef.current = clearLogMutation
 
 	const closePalette = useCallback(() => {
-		setIsOpen(false)
+		commandPaletteOpen.set(false)
 		setQuery('')
 		setSelectedIndex(0)
 	}, [])
@@ -83,30 +90,16 @@ export const CommandPalette = observer(function CommandPalette() {
 	const allItems = useMemo((): CommandItem[] => {
 		const items: CommandItem[] = []
 
-		// 1. Navigation
-		const navPages = [
-			{ title: 'Buttons Grid', path: '/buttons', icon: faBorderAll },
-			{ title: 'Page Matrix Overview', path: '/buttons', icon: faTableCells },
-			{ title: 'Connections', path: '/connections', icon: faPlug },
-			{ title: 'Surfaces & Emulators', path: '/surfaces', icon: faGamepad },
-			{ title: 'Triggers', path: '/triggers', icon: faClock },
-			{ title: 'Custom Variables', path: '/variables/custom', icon: faDollarSign },
-			{ title: 'System Variables', path: '/variables', icon: faList },
-			{ title: 'Image Library', path: '/image-library', icon: faImages },
-			{ title: 'Settings', path: '/settings', icon: faCog },
-			{ title: 'System Log', path: '/log', icon: faList },
-			{ title: 'Import / Export', path: '/import-export', icon: faFileImport },
-		]
-
-		for (const nav of navPages) {
+		// 1. Navigation — every page the sidebar and section tabs can reach
+		for (const nav of ALL_NAV_PAGES) {
 			items.push({
 				id: `nav:${nav.path}`,
 				category: 'Navigation',
-				title: nav.title,
+				title: nav.label,
 				subtitle: `Go to ${nav.path}`,
 				icon: nav.icon,
 				onSelect: () => {
-					void navigate({ to: nav.path as any })
+					void navigate({ to: nav.path })
 					closePalette()
 				},
 			})
@@ -114,13 +107,26 @@ export const CommandPalette = observer(function CommandPalette() {
 
 		// 2. Quick Actions
 		items.push({
+			id: 'action:page-matrix',
+			category: 'Quick Actions',
+			title: 'Page Matrix Overview',
+			subtitle: 'Visual overview of every page',
+			icon: faTableCells,
+			onSelect: () => {
+				void navigate({ to: '/buttons' })
+				pageMatrixOpen.set(true)
+				closePalette()
+			},
+		})
+
+		items.push({
 			id: 'action:rescan-usb',
 			category: 'Quick Actions',
 			title: 'Rescan USB Surfaces',
 			subtitle: 'Detect connected Stream Decks and controllers',
 			icon: faRotate,
 			onSelect: () => {
-				rescanUsbMutation
+				rescanUsbRef.current
 					.mutateAsync()
 					.then(() => notifier.show('USB Rescan', 'Surfaces rescanned successfully', 5000))
 					.catch((err) => notifier.show('USB Rescan Failed', String(err), 5000))
@@ -135,7 +141,7 @@ export const CommandPalette = observer(function CommandPalette() {
 			subtitle: 'Empty the current system log history',
 			icon: faTrash,
 			onSelect: () => {
-				clearLogMutation
+				clearLogRef.current
 					.mutateAsync()
 					.then(() => notifier.show('Log Cleared', 'System log cleared', 5000))
 					.catch((err) => notifier.show('Clear Log Failed', String(err), 5000))
@@ -191,7 +197,7 @@ export const CommandPalette = observer(function CommandPalette() {
 			}
 		}
 
-		// 5. Pages and buttons across all pages
+		// 5. Pages
 		if (pages?.data) {
 			pages.data.forEach((page, index) => {
 				const pageNumber = index + 1
@@ -209,29 +215,6 @@ export const CommandPalette = observer(function CommandPalette() {
 						closePalette()
 					},
 				})
-
-				if (page?.controls) {
-					for (const [row, cols] of page.controls.entries()) {
-						if (cols) {
-							for (const [col, controlId] of cols.entries()) {
-								if (controlId) {
-									items.push({
-										id: `btn:${pageNumber}:${row}:${col}`,
-										category: 'Buttons',
-										title: `Button R${row + 1} C${col + 1}`,
-										subtitle: `${pageName} • ${controlId}`,
-										badge: `P${pageNumber}`,
-										icon: faBorderAll,
-										onSelect: () => {
-											void navigate({ to: `/buttons/${pageNumber}` as any })
-											closePalette()
-										},
-									})
-								}
-							}
-						}
-					}
-				}
 			})
 		}
 
@@ -257,17 +240,7 @@ export const CommandPalette = observer(function CommandPalette() {
 		}
 
 		return items
-	}, [
-		pages,
-		connections,
-		triggersList,
-		variablesStore,
-		navigate,
-		closePalette,
-		rescanUsbMutation,
-		clearLogMutation,
-		notifier,
-	])
+	}, [pages, connections, triggersList, variablesStore, navigate, closePalette, notifier])
 
 	// Fuzzy-filter items based on query
 	const filteredItems = useMemo(() => {
@@ -320,14 +293,12 @@ export const CommandPalette = observer(function CommandPalette() {
 		}
 	}, [selectedIndex])
 
-	if (!isOpen) return null
-
 	return (
-		<Modal.Root open={isOpen} onOpenChange={setIsOpen}>
+		<Modal.Root open onOpenChange={(open) => !open && closePalette()}>
 			<Modal.Portal>
 				<Modal.Backdrop className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity" />
 				<Modal.Viewport className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 p-4 overflow-y-auto">
-					<Modal.Popup className="w-full max-w-2xl bg-surface border border-border/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[75vh] animate-in fade-in zoom-in-95 duration-150">
+					<Modal.Popup className="w-full max-w-2xl bg-surface border border-border/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col dialog-max-h animate-in fade-in zoom-in-95 duration-150">
 						{/* Search Input Header */}
 						<div className="flex items-center px-4 py-3.5 border-b border-border/70 gap-3 bg-surface">
 							<FontAwesomeIcon icon={faMagnifyingGlass} className="text-muted text-base shrink-0" />
@@ -379,7 +350,7 @@ export const CommandPalette = observer(function CommandPalette() {
 													<div className="flex items-center gap-2">
 														<span className="font-semibold text-xs truncate text-body">{item.title}</span>
 														{item.badge && (
-															<span className="px-1.5 py-0.2 rounded text-3xs font-medium bg-surface-muted text-muted border border-border/70 shrink-0">
+															<span className="px-1.5 py-0.5 rounded text-3xs font-medium bg-surface-muted text-muted border border-border/70 shrink-0">
 																{item.badge}
 															</span>
 														)}

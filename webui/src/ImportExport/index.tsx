@@ -167,7 +167,7 @@ export const ImportExportPage = observer(function ImportExport() {
 		<div className="page-shell">
 			<PageHeader icon={faFileImport} title="Import / Export" helpAction="/user-guide/config/import-export" />
 
-			<div className="flex-1 min-h-0 overflow-y-auto">
+			<div className="page-scroll">
 				<PageIntro title="Configuration Management">
 					Export custom configuration backups, restore from a snapshot, or reset Companion configuration.
 				</PageIntro>

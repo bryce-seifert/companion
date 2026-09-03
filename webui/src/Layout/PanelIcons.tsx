@@ -24,7 +24,7 @@ export function CloseButton({ closeFn, visibilityClass, className }: CloseButton
 	return (
 		<button
 			type="button"
-			className={classNames('panel-icon-button panel-close-button', visibilityClass, className)}
+			className={classNames('panel-icon-button', visibilityClass, className)}
 			onClick={closeFn}
 			title="Close panel"
 			aria-label="Close panel"

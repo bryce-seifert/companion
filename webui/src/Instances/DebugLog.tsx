@@ -1,17 +1,14 @@
-import { faBug, faCheck, faFileExport, faInfoCircle, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faBug, faCheck, faFileExport, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { useSubscription } from '@trpc/tanstack-react-query'
-import classNames from 'classnames'
 import { stringify as csvStringify } from 'csv-stringify/browser/esm/sync'
-import dayjs from 'dayjs'
 import { observer } from 'mobx-react-lite'
-import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ClientConnectionConfig } from '@companion-app/shared/Model/Connections.js'
 import type { InstanceStatusEntry } from '@companion-app/shared/Model/InstanceStatus.js'
-import { Button, ButtonGroup } from '~/Components/Button'
+import { Button, ButtonGroup, type ButtonProps } from '~/Components/Button'
+import { LogLine, LogNoticeLine, VirtualLogList } from '~/Components/LogViewer.js'
 import { safeSetLocalStorage } from '~/Helpers/SafeStorage.js'
-import { useStickyScroll } from '~/Hooks/useStickyScroll.js'
 import { InstanceTableStatusCell } from '~/Instances/List/InstanceTableStatusCell.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { trpc } from '~/Resources/TRPC'
@@ -31,6 +28,14 @@ interface DebugConfig {
 	error: boolean | undefined
 	console: boolean | undefined
 }
+
+const DEBUG_LEVELS = [
+	{ key: 'error', label: 'Error', color: 'danger' },
+	{ key: 'warn', label: 'Warning', color: 'warning' },
+	{ key: 'info', label: 'Info', color: 'info' },
+	{ key: 'debug', label: 'Debug', color: 'secondary' },
+	{ key: 'console', label: 'Console', color: 'secondary' },
+] as const satisfies readonly { key: keyof DebugConfig; label: string; color: ButtonProps['color'] }[]
 
 const LogsOnDiskInfoLine: DebugLogLine = {
 	time: null,
@@ -196,12 +201,6 @@ export const InstanceDebugLog = observer(function InstanceDebugLog({
 		}))
 	}, [])
 
-	const doToggleError = useCallback(() => doToggleConfig('error'), [doToggleConfig])
-	const doToggleWarn = useCallback(() => doToggleConfig('warn'), [doToggleConfig])
-	const doToggleInfo = useCallback(() => doToggleConfig('info'), [doToggleConfig])
-	const doToggleDebug = useCallback(() => doToggleConfig('debug'), [doToggleConfig])
-	const doToggleConsole = useCallback(() => doToggleConfig('console'), [doToggleConfig])
-
 	return (
 		<div className="page-shell bg-app-frame-bg h-screen max-h-screen text-body pt-3">
 			<PageHeader icon={faBug} title={`Debug Log: ${label}`} helpAction="/user-guide/config/connections" />
@@ -211,31 +210,18 @@ export const InstanceDebugLog = observer(function InstanceDebugLog({
 				<div className="flex items-center gap-2">
 					<span className="text-xs font-semibold text-body me-1">Levels:</span>
 					<ButtonGroup>
-						<Button color="danger" size="sm" onClick={doToggleError} variant={config.error ? undefined : 'outline'}>
-							{config.error && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
-							Error
-						</Button>
-						<Button color="warning" size="sm" onClick={doToggleWarn} variant={config.warn ? undefined : 'outline'}>
-							{config.warn && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
-							Warning
-						</Button>
-						<Button color="info" size="sm" onClick={doToggleInfo} variant={config.info ? undefined : 'outline'}>
-							{config.info && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
-							Info
-						</Button>
-						<Button color="secondary" size="sm" onClick={doToggleDebug} variant={config.debug ? undefined : 'outline'}>
-							{config.debug && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
-							Debug
-						</Button>
-						<Button
-							color="secondary"
-							size="sm"
-							onClick={doToggleConsole}
-							variant={config.console ? undefined : 'outline'}
-						>
-							{config.console && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
-							Console
-						</Button>
+						{DEBUG_LEVELS.map(({ key, label: levelLabel, color }) => (
+							<Button
+								key={key}
+								color={color}
+								size="sm"
+								onClick={() => doToggleConfig(key)}
+								variant={config[key] ? undefined : 'outline'}
+							>
+								{config[key] && <FontAwesomeIcon icon={faCheck} className="me-1 text-xs" />}
+								{levelLabel}
+							</Button>
+						))}
 					</ButtonGroup>
 				</div>
 
@@ -274,132 +260,29 @@ interface LogPanelContentsProps {
 }
 
 function LogPanelContents({ linesBuffer, config }: LogPanelContentsProps) {
-	const parentRef = useRef<HTMLDivElement>(null)
-
 	const messages = useMemo(() => {
 		return linesBuffer.filter((msg) => msg.level === 'system' || !!config[msg.level as keyof DebugConfig])
 	}, [linesBuffer, config])
 
-	const count = messages.length + 1
-
-	// eslint-disable-next-line react-hooks/incompatible-library
-	const virtualizer = useVirtualizer({
-		count: count,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => 24,
-		overscan: 5,
-	})
-
-	const onScroll = useStickyScroll(parentRef, virtualizer, count)
-
-	const items = virtualizer.getVirtualItems()
-
 	return (
-		<div ref={parentRef} className="w-full h-full overflow-auto" onScroll={onScroll}>
-			<div
-				style={{
-					height: virtualizer.getTotalSize(),
-					width: '100%',
-					position: 'relative',
-				}}
-			>
-				<div
-					style={{
-						position: 'absolute',
-						top: 0,
-						left: 0,
-						width: '100%',
-						transform: `translateY(${items[0]?.start ?? 0}px)`,
-					}}
-				>
-					{items.map((virtualRow) => (
-						<div key={virtualRow.key} data-index={virtualRow.index} ref={virtualizer.measureElement}>
-							<LogLineInner line={virtualRow.index === 0 ? LogsOnDiskInfoLine : messages[virtualRow.index - 1]} />
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
+		<VirtualLogList
+			lines={messages}
+			header={<LogNoticeLine message={LogsOnDiskInfoLine.message} />}
+			renderLine={(line) => (
+				<LogLine
+					line={line}
+					timeFormat="YYYY-MM-DD HH:mm:ss.SSS"
+					timeClassName="log-timestamp-cell"
+					sourceClassName="w-48"
+					alwaysReserveSource
+				/>
+			)}
+			estimateSize={24}
+			autoScroll
+			className="w-full h-full overflow-auto"
+		/>
 	)
 }
-
-interface LogLineInnerProps {
-	line: DebugLogLine
-}
-const LogLineInner = memo(({ line }: LogLineInnerProps) => {
-	if (line.time === null || line.level === 'system') {
-		return (
-			<div className="flex items-center gap-2 py-1.5 px-3 mb-1 rounded bg-surface-muted/60 border border-border/70 text-xs text-muted font-sans">
-				<FontAwesomeIcon icon={faInfoCircle} className="text-sky-500 shrink-0" />
-				<span className="break-words min-w-0 flex-1">{line.message}</span>
-			</div>
-		)
-	}
-
-	const time_format = dayjs(line.time).format('YYYY-MM-DD HH:mm:ss.SSS')
-
-	let levelBadge = null
-	let lineBgColor = 'bg-transparent'
-
-	if (line.level === 'error' || line.level === 'fatal') {
-		levelBadge = (
-			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-rose-500/20 text-rose-500 border border-rose-500/30 shrink-0 select-none">
-				ERROR
-			</span>
-		)
-		lineBgColor = 'bg-rose-500/10 border-rose-500/20'
-	} else if (line.level === 'warn') {
-		levelBadge = (
-			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 select-none">
-				WARN
-			</span>
-		)
-		lineBgColor = 'bg-amber-500/10 border-amber-500/20'
-	} else if (line.level === 'info') {
-		levelBadge = (
-			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/30 shrink-0 select-none">
-				INFO
-			</span>
-		)
-		lineBgColor = 'bg-sky-500/10 border-sky-500/20'
-	} else if (line.level === 'console') {
-		levelBadge = (
-			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-purple-500/20 text-purple-500 border border-purple-500/30 shrink-0 select-none">
-				CONSOLE
-			</span>
-		)
-		lineBgColor = 'bg-transparent'
-	} else if (line.level === 'debug') {
-		levelBadge = (
-			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-zinc-500/15 text-zinc-400 border border-zinc-500/20 shrink-0 select-none">
-				DEBUG
-			</span>
-		)
-		lineBgColor = 'bg-transparent'
-	}
-
-	return (
-		<div
-			className={classNames(
-				'flex items-start gap-2.5 py-1 px-2.5 rounded hover:bg-surface-hover/50 transition-colors text-xs font-mono border border-transparent my-0.5 leading-relaxed',
-				lineBgColor
-			)}
-		>
-			<span className="text-muted shrink-0 select-none text-2xs tabular-nums whitespace-nowrap w-[160px] pt-0.5">
-				{time_format}
-			</span>
-			{levelBadge}
-			{line.source ? (
-				<span className="font-semibold text-body shrink-0 w-48 truncate select-none" title={line.source}>
-					{line.source}
-				</span>
-			) : (
-				<span className="shrink-0 w-48 select-none" />
-			)}
-			<span className="text-body whitespace-pre-wrap break-words min-w-0 flex-1">{line.message}</span>
-		</div>
-	)
-})
 
 function loadConfig(instanceId: string): DebugConfig {
 	const saveId = `module_debug:${instanceId}`

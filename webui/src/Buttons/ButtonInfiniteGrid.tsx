@@ -73,8 +73,10 @@ export const ButtonInfiniteGrid = forwardRef<ButtonInfiniteGridRef, ButtonInfini
 			const fitWidth = availableWidth / (countColumns * baseTileSize)
 			const fitHeight = availableHeight / (countRows * baseTileSize)
 
-			// Use the smaller scale so it fully fits, but cap at 300% to avoid absurdly huge buttons
-			return Math.min(3, Math.max(0.2, Math.min(fitWidth, fitHeight)))
+			// Use the smaller scale so it fully fits, but cap at 300% to avoid absurdly huge buttons.
+			// Quantised to 1% steps so that dragging a resize handle doesn't re-lay out every tile per frame.
+			const scale = Math.min(3, Math.max(0.2, Math.min(fitWidth, fitHeight)))
+			return Math.round(scale * 100) / 100
 		}, [windowSizeRaw, countColumns, countRows])
 
 		// Auto scale replaces the manually passed drawScale

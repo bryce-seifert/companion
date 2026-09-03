@@ -116,7 +116,7 @@ export const ButtonEditorTabs = observer(function ButtonEditorTabs({
 								<div className="flex items-center gap-1.5">
 									<span>{tab.name}</span>
 									{tab.count !== undefined && (
-										<span className="px-1.5 py-0.2 rounded-full text-3xs font-semibold bg-primary/20 text-primary">
+										<span className="px-1.5 py-0.5 rounded-full text-3xs font-semibold bg-primary/20 text-primary">
 											{tab.count}
 										</span>
 									)}

@@ -9,6 +9,7 @@ import { ConfirmExportModal, type ConfirmExportModalRef } from '~/Components/Con
 import { Grid } from '~/Components/Grid'
 import { useHasBeenRendered } from '~/Hooks/useHasBeenRendered.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
+import { pageMatrixOpen } from '~/Layout/PageMatrixState.js'
 import { KeyReceiver, makeAbsolutePath } from '~/Resources/util.js'
 import type { PagesStoreModel } from '~/Stores/PagesStore.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
@@ -17,7 +18,7 @@ import { ButtonGridHeader } from './ButtonGridHeader.js'
 import { ButtonGridResizePrompt } from './ButtonGridResizePrompt.js'
 import { ButtonInfiniteGrid, PrimaryButtonGridIcon, type ButtonInfiniteGridRef } from './ButtonInfiniteGrid.js'
 import { EditPagePropertiesModal, type EditPagePropertiesModalRef } from './EditPageProperties.js'
-import { PageMatrixModal, type PageMatrixModalRef } from './PageMatrixModal.js'
+import { PageMatrixModal } from './PageMatrixModal.js'
 
 interface ButtonsGridPanelProps {
 	pageNumber: number
@@ -83,7 +84,6 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 
 	const gridRef = useRef<ButtonInfiniteGridRef>(null)
 	const editRef = useRef<EditPagePropertiesModalRef>(null)
-	const pageMatrixRef = useRef<PageMatrixModalRef>(null)
 
 	const exportModalRef = useRef<ConfirmExportModalRef>(null)
 	const showExportModal = useCallback(() => {
@@ -112,12 +112,7 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 			<div className="button-grid-panel-header" ref={isInViewRef}>
 				<ConfirmExportModal ref={exportModalRef} title="Export Page" />
 				<EditPagePropertiesModal ref={editRef} includeName />
-				<PageMatrixModal
-					ref={pageMatrixRef}
-					currentPageNumber={pageNumber}
-					onSelectPage={setPage}
-					onConfigurePage={configurePage}
-				/>
+				<PageMatrixModal currentPageNumber={pageNumber} onSelectPage={setPage} onConfigurePage={configurePage} />
 
 				<PageHeader icon={faTableCells} title="Buttons" helpAction="/user-guide/config/buttons/" />
 
@@ -128,7 +123,7 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 						<ButtonGridHeader pageNumber={pageNumber} changePage={changePage2} setPage={setPage}>
 							<Button
 								color="primary"
-								onClick={() => pageMatrixRef.current?.show()}
+								onClick={() => pageMatrixOpen.set(true)}
 								title="Open Page Matrix & Overview"
 								className="ms-1 font-medium"
 							>

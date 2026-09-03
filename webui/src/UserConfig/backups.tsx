@@ -51,10 +51,10 @@ export const SettingsBackupsPage = observer(function UserConfig() {
 		<div className="page-shell">
 			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings#backups" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<SettingsNav activeTab="backups" />
 
-				<div className="flex-1 min-h-0 overflow-y-auto">
+				<div className="page-scroll">
 					<SplitPanels.Root showing={selectedRuleId ? 'secondary' : 'primary'} resize={{ storageKey: 'backups' }}>
 						<SplitPanels.Primary>
 							<div className="flex flex-col h-full gap-3">

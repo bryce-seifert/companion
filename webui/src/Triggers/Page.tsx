@@ -333,7 +333,7 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 				<div className="truncate text-sm font-semibold text-body flex items-center gap-2">
 					<span>{item.name}</span>
 					{item.enabled && !collectionDisabled && (
-						<span className="text-3xs font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+						<span className="text-3xs font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
 							Active
 						</span>
 					)}

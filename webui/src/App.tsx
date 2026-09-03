@@ -64,8 +64,8 @@ export default function App(): React.JSX.Element {
 		<ContextData>
 			{(loadingProgress, loadingComplete) => (
 				<>
-					<ConnectionLostOverlay visible={wasConnected} />
-					<ConfigImportingOverlay visible={!wasConnected && !!currentImportTask} />
+					{wasConnected && <ConnectionLostOverlay />}
+					{!wasConnected && !!currentImportTask && <ConfigImportingOverlay />}
 					<Suspense fallback={<AppLoading progress={loadingProgress} connected={connected} />}>
 						<MonacoLoader />
 						{/*
@@ -297,7 +297,7 @@ interface AppLoadingProps {
 
 function AppLoading({ progress, connected }: AppLoadingProps) {
 	return (
-		<div className="flex flex-col items-center justify-center min-h-[75vh] p-6 select-none">
+		<div className="flex flex-col items-center justify-center page-empty-state p-6 select-none">
 			<div className="bg-surface text-body border border-border/80 rounded-2xl shadow-xl p-8 sm:p-10 max-w-sm w-full flex flex-col items-center text-center">
 				<div className="w-16 h-16 rounded-2xl bg-surface-muted/80 border border-border/70 p-2.5 flex items-center justify-center mb-5 shadow-xs">
 					<img

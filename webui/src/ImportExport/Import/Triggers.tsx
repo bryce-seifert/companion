@@ -80,7 +80,7 @@ export function ImportTriggersTab({
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+			<div className="surface-card">
 				<div className="p-4 border-b border-border/70 bg-surface-muted/30 flex items-center justify-between flex-wrap gap-2">
 					<div>
 						<h5 className="text-sm font-bold text-body mb-0.5">Select Triggers</h5>

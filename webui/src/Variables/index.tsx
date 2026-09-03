@@ -87,10 +87,10 @@ export const ConnectionVariablesPage = observer(function VariablesConnectionList
 		<div className="page-shell">
 			<PageHeader icon={faDollarSign} title="Variables" helpAction="/user-guide/config/variables" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<VariablesNav activeTab="connections" />
 
-				<div className="flex-1 min-h-0 overflow-y-auto">
+				<div className="page-scroll">
 					<PageIntro title="Connection Variables">
 						Select a active module connection below to inspect its live dynamic variables.
 					</PageIntro>
@@ -120,7 +120,7 @@ export function VariablesListPage(): React.JSX.Element {
 		<div className="page-shell">
 			<PageHeader icon={faDollarSign} title="Variables" helpAction="/user-guide/config/variables" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<div className="flex items-center gap-2 mb-3">
 					<LinkButton color="secondary" size="sm" to="/variables">
 						<FontAwesomeIcon icon={faArrowLeft} className="me-1.5" /> Back to Variables
@@ -130,7 +130,7 @@ export function VariablesListPage(): React.JSX.Element {
 					</span>
 				</div>
 
-				<div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border/70 bg-surface p-4">
+				<div className="page-scroll rounded-lg border border-border/70 bg-surface p-4">
 					<VariablesTable label={label} />
 				</div>
 			</div>

@@ -1,9 +1,9 @@
 import { faCog } from '@fortawesome/free-solid-svg-icons'
 import { observer } from 'mobx-react-lite'
 import { memo } from 'react'
-import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { PageIntro } from '~/Layout/PageIntro'
+import { SettingsCard } from './Components/SettingsCard.js'
 import { useUserConfigProps } from './Context.js'
 import { AdminPasswordConfig } from './Sections/AdminPasswordConfig.js'
 import { ExperimentsConfig } from './Sections/ExperimentsConfig.js'
@@ -15,10 +15,10 @@ export const SettingsAdvancedPage = memo(function UserConfig() {
 		<div className="page-shell">
 			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings#advanced" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<SettingsNav activeTab="advanced" />
 
-				<div className="flex-1 min-h-0 overflow-y-auto">
+				<div className="page-scroll">
 					<div className="primary-panel">
 						<PageIntro title="Advanced Settings">
 							Admin authentication, HTTPS certificates, and experimental features.
@@ -37,27 +37,15 @@ const UserConfigTable = observer(function UserConfigTable() {
 
 	return (
 		<div className="w-full space-y-4">
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
-				<Table className="table-settings mb-0">
-					<tbody>
-						<AdminPasswordConfig {...userConfigProps} />
-					</tbody>
-				</Table>
-			</div>
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
-				<Table className="table-settings mb-0">
-					<tbody>
-						<HttpsConfig {...userConfigProps} />
-					</tbody>
-				</Table>
-			</div>
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
-				<Table className="table-settings mb-0">
-					<tbody>
-						<ExperimentsConfig {...userConfigProps} />
-					</tbody>
-				</Table>
-			</div>
+			<SettingsCard>
+				<AdminPasswordConfig {...userConfigProps} />
+			</SettingsCard>
+			<SettingsCard>
+				<HttpsConfig {...userConfigProps} />
+			</SettingsCard>
+			<SettingsCard>
+				<ExperimentsConfig {...userConfigProps} />
+			</SettingsCard>
 		</div>
 	)
 })

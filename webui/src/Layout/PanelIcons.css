@@ -27,9 +27,3 @@
 		height: 1.5rem;
 	}
 }
-
-.panel-close-button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-}

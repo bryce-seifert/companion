@@ -16,8 +16,8 @@ interface EntityCellControlProps {
 	service: IEntityEditorActionService
 	entityTypeLabel: string
 	entity: SomeEntityModel
-	entityDefinition?: ClientEntityDefinition
-	connectionLabel?: string
+	entityDefinition: ClientEntityDefinition | undefined
+	connectionLabel: string
 	ownerId: EntityOwner | null
 	isPanelCollapsed: boolean
 	setPanelCollapsed: (collapsed: boolean) => void
@@ -35,7 +35,7 @@ function EntityOptionPills({
 	entityDefinition,
 }: {
 	entity: SomeEntityModel
-	entityDefinition?: ClientEntityDefinition
+	entityDefinition: ClientEntityDefinition | undefined
 }) {
 	const pills: { key: string; label?: string; value: string; isDelay?: boolean }[] = []
 
@@ -75,7 +75,7 @@ function EntityOptionPills({
 				pills.push({
 					key: optDef.id,
 					label: optDef.label,
-					value: valStr.length > 22 ? `${valStr.slice(0, 20)}…` : valStr,
+					value: valStr,
 				})
 			}
 		}
@@ -95,7 +95,7 @@ function EntityOptionPills({
 					}`}
 				>
 					{pill.label && <span className="opacity-60 mr-1">{pill.label}:</span>}
-					<span className="font-semibold text-body truncate max-w-[140px]">{pill.value}</span>
+					<span className="font-semibold text-body truncate entity-pill-value">{pill.value}</span>
 				</span>
 			))}
 		</div>
@@ -172,7 +172,7 @@ export const EntityRowHeader = observer(function EntityRowHeader({
 
 						{entity.headline && (
 							<span
-								className="text-3xs font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 truncate max-w-[220px]"
+								className="text-3xs font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 truncate entity-value-pill"
 								title={`Note: ${entity.headline}`}
 							>
 								// {entity.headline}
@@ -180,7 +180,7 @@ export const EntityRowHeader = observer(function EntityRowHeader({
 						)}
 					</>
 				) : (
-					<div className="grow min-w-[200px]" onClick={(e) => e.stopPropagation()}>
+					<div className="grow list-toolbar-search" onClick={(e) => e.stopPropagation()}>
 						<TextInputFieldSimple
 							id={undefined}
 							value={entity.headline ?? ''}

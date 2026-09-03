@@ -10,10 +10,10 @@ export function SurfaceDiscoveryPage(): React.JSX.Element {
 		<div className="page-shell">
 			<PageHeader icon={faGamepad} title="Surfaces" helpAction="/user-guide/config/surfaces#discover" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<SurfacesNav />
 
-				<div className="flex-1 min-h-0 overflow-y-auto">
+				<div className="page-scroll">
 					<PageIntro title="Discover Surfaces">
 						Discovered remote surfaces (such as Companion Satellite 1.9.0+, Stream Deck Studio, or Network Dock) will
 						appear below.

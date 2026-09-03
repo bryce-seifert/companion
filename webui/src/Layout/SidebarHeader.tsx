@@ -59,8 +59,8 @@ export function SidebarHeader(): React.JSX.Element {
 
 export interface SidebarFooterProps {
 	onContextMenu: MouseEventHandler<HTMLElement>
-	onToggleNarrow?: () => void
-	isNarrow?: boolean
+	onToggleNarrow: () => void
+	isNarrow: boolean
 }
 
 export const SidebarFooter = observer(function SidebarFooter({
@@ -90,7 +90,7 @@ export const SidebarFooter = observer(function SidebarFooter({
 				<button
 					type="button"
 					className="w-9 h-9 flex items-center justify-center bg-zinc-800/60 hover:bg-zinc-700/80 border border-zinc-700/50 rounded-md text-zinc-300 hover:text-white transition cursor-pointer shadow-sm"
-					onClick={onToggleNarrow || onContextMenu}
+					onClick={onToggleNarrow}
 					onContextMenu={onContextMenu}
 					title="Expand Sidebar"
 				>
@@ -137,7 +137,7 @@ export const SidebarFooter = observer(function SidebarFooter({
 			<button
 				type="button"
 				className="w-full h-7 flex items-center justify-center gap-1.5 bg-zinc-800/60 hover:bg-zinc-700/80 border border-zinc-700/50 rounded-md text-xs font-medium text-zinc-300 hover:text-white transition cursor-pointer shadow-xs"
-				onClick={onToggleNarrow || onContextMenu}
+				onClick={onToggleNarrow}
 				onContextMenu={onContextMenu}
 				title="Collapse Sidebar"
 			>

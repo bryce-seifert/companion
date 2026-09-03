@@ -12,12 +12,17 @@ export const InstanceTableStatusCell = observer(function InstanceTableStatusCell
 	status,
 }: InstanceTableStatusCellProps) {
 	if (!isEnabled) {
-		return (
-			<Badge tone="disabled" dot>
-				Disabled
-			</Badge>
-		)
+		return <Badge tone="disabled">Disabled</Badge>
 	}
+
+	// The module's own status message is the only explanation of *why* a connection is failing, and it
+	// is too long for the badge, so it is surfaced as hover text.
+	const messageStr =
+		typeof status?.message === 'string' || typeof status?.message === 'number'
+			? String(status.message)
+			: status?.message
+				? JSON.stringify(status.message)
+				: ''
 
 	const isConnecting = !status?.category || (status.category === 'error' && status.level === 'Connecting')
 
@@ -40,7 +45,7 @@ export const InstanceTableStatusCell = observer(function InstanceTableStatusCell
 	}
 
 	return (
-		<Badge tone={tone} dot indicator={indicator}>
+		<Badge tone={tone} indicator={indicator} title={messageStr ? `${label}: ${messageStr}` : label}>
 			<span>{label}</span>
 		</Badge>
 	)

@@ -1,5 +1,12 @@
 import { useDragDropMonitor } from '@dnd-kit/react'
-import { faCalculator, faDollarSign, faGift, faThLarge, faVideoCamera } from '@fortawesome/free-solid-svg-icons'
+import {
+	faCalculator,
+	faDollarSign,
+	faGift,
+	faLayerGroup,
+	faThLarge,
+	faVideoCamera,
+} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useMatchRoute, useNavigate, type UseNavigateResult } from '@tanstack/react-router'
 import { observer } from 'mobx-react-lite'
@@ -20,6 +27,7 @@ import { ActionRecorder } from './ActionRecorder/index.js'
 import { ButtonsGridPanel } from './ButtonGridPanel.js'
 import { EditButton } from './EditButton/EditButton.js'
 import { parseGridButtonDroppableId } from './GridButtonDroppableId.js'
+import { PagesList } from './Pages.js'
 import { PageVariablesPanel } from './PageVariablesPanel.js'
 import type { PresetDragItem } from './Presets/PresetDragItem.js'
 import { ConnectionPresets } from './Presets/Presets.js'
@@ -402,6 +410,9 @@ export const ButtonsPage = observer(function ButtonsPage() {
 									{selectedButton ? `${formatLocation(selectedButton)}` : '?'}
 								</TabArea.Tab>
 							)}
+							<TabArea.Tab value="pages">
+								<FontAwesomeIcon icon={faLayerGroup} /> Pages
+							</TabArea.Tab>
 							<TabArea.Tab value="page-variables">
 								<FontAwesomeIcon icon={faDollarSign} /> Page Variables
 							</TabArea.Tab>
@@ -425,6 +436,11 @@ export const ButtonsPage = observer(function ButtonsPage() {
 										navigateToControl={navigateToControl}
 									/>
 								)}
+							</MyErrorBoundary>
+						</TabArea.Panel>
+						<TabArea.Panel value="pages">
+							<MyErrorBoundary>
+								<PagesList setPageNumber={setPageNumber} />
 							</MyErrorBoundary>
 						</TabArea.Panel>
 						<TabArea.Panel value="page-variables">

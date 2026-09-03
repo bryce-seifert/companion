@@ -83,7 +83,7 @@ function SidebarHelpTab({ helpPath }: { helpPath: string }) {
 	}
 
 	return (
-		<div className="flex-1 min-h-0 overflow-y-auto p-4 text-sm text-body leading-relaxed space-y-3">
+		<div className="page-scroll p-4 text-sm text-body leading-relaxed space-y-3">
 			<ModuleHelpContent markdown={markdown} helpUrl={helpUrl} />
 		</div>
 	)
@@ -168,7 +168,7 @@ export const ConnectionEditPanel = observer(function ConnectionEditPanel({ conne
 
 			{/* Tab 3: Diagnostics */}
 			{activeTab === 'diagnostics' && (
-				<div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 flex flex-col">
+				<div className="page-scroll p-4 space-y-4 flex flex-col">
 					<div className="rounded-md border border-border bg-surface-muted/20 p-4 space-y-3 shrink-0">
 						<div className="flex items-center justify-between">
 							<h4 className="text-sm font-semibold text-body mb-0">Connection Health</h4>

@@ -31,10 +31,10 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 		<div className="page-shell">
 			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings#protocols" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<SettingsNav activeTab="protocols" />
 
-				<div className="flex-1 min-h-0 overflow-y-auto">
+				<div className="page-scroll">
 					<div className="primary-panel space-y-6 pb-8">
 						<div>
 							<PageIntro
@@ -43,12 +43,12 @@ export const SettingsProtocolsPage = memo(function UserConfig() {
 							>
 								Enable or disable network remote control endpoints for TCP, UDP, HTTP, OSC, Artnet, and Satellite.
 							</PageIntro>
-							<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+							<div className="surface-card">
 								<UserConfigTable />
 							</div>
 						</div>
 
-						<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
+						<div className="surface-card">
 							<div className="flex items-center gap-3 p-4 bg-surface-muted/40 border-b border-border/70">
 								<span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-muted text-muted text-sm">
 									<FontAwesomeIcon icon={faNetworkWired} />

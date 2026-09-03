@@ -362,6 +362,24 @@ hr.slim {
 		height: auto;
 		min-height: 0;
 	}
+
+	/* A page whose header is followed by a tab strip wraps both in this, so the tabs stay put and only
+	   the body below them scrolls. */
+	> .page-shell-body {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+		overflow: hidden;
+	}
+}
+
+/* The scrolling region of a page or panel: takes the leftover height and scrolls on its own. Named
+   because getting one of its three parts wrong silently loses the scroll container. */
+.page-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 }
 
 .page-header {

@@ -127,7 +127,7 @@ function TriggerPanelContent({ config, controlId }: TriggerPanelContentProps): R
 			</div>
 
 			{/* Unified Automation Pipeline Canvas (No Tabs, No Truncation) */}
-			<div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+			<div className="page-scroll p-4 space-y-3">
 				{/* ─── STAGE 1: WHEN (Events) ─────────────────────────────────── */}
 				<div className="rounded-xl border border-border bg-surface shadow-xs overflow-hidden">
 					<div className="px-3.5 py-2.5 bg-surface-subtle border-b border-border flex items-center justify-between">

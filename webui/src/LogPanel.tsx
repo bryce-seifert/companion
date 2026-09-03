@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { useSubscription } from '@trpc/tanstack-react-query'
-import classNames from 'classnames'
 import dayjs from 'dayjs'
 import {
 	AlertCircle,
@@ -22,19 +20,31 @@ import { nanoid } from 'nanoid'
 import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ClientLogLine } from '@companion-app/shared/Model/LogLine.js'
 import { GenericConfirmModal, type GenericConfirmModalRef } from '~/Components/GenericConfirmModal.js'
+import { LogLine, LogNoticeLine, VirtualLogList } from '~/Components/LogViewer.js'
+import { PillButton, type PillTone } from '~/Components/PillButton.js'
 import { safeSetLocalStorage } from '~/Helpers/SafeStorage.js'
-import { useStickyScroll } from '~/Hooks/useStickyScroll.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
-import { assertNever, makeAbsolutePath } from '~/Resources/util.js'
+import { assertNever, makeAbsolutePath, useDebounced } from '~/Resources/util.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { trpc, useMutationExt } from './Resources/TRPC'
-import './log.css'
 
 interface LogConfig {
 	error?: boolean
 	warn: boolean
 	info: boolean
 	debug: boolean
+}
+
+const LOG_LEVELS = [
+	{ key: 'error', label: 'Error', icon: AlertCircle, tone: 'error' },
+	{ key: 'warn', label: 'Warn', icon: AlertTriangle, tone: 'warning' },
+	{ key: 'info', label: 'Info', icon: Info, tone: 'info' },
+	{ key: 'debug', label: 'Debug', icon: Bug, tone: 'neutral' },
+] as const satisfies readonly { key: keyof LogConfig; label: string; icon: typeof Info; tone: PillTone }[]
+
+/** `error` defaults to on, so it is the only level where `undefined` means enabled. */
+function isLevelEnabled(config: LogConfig, key: keyof LogConfig): boolean {
+	return key === 'error' ? config.error !== false : !!config[key]
 }
 
 interface ClientLogLineExt extends Omit<ClientLogLine, 'time'> {
@@ -96,59 +106,46 @@ export const LogPanel = memo(function LogPanel() {
 
 	const { history } = useLogHistory()
 
-	// Compute live counts
-	const counts = useMemo(() => {
-		const c = { error: 0, warn: 0, info: 0, debug: 0 }
-		for (const item of history) {
-			if (item.level === 'error' || item.level === 'fatal') c.error++
-			else if (item.level === 'warn') c.warn++
-			else if (item.level === 'info') c.info++
-			else if (item.level === 'debug') c.debug++
-		}
-		return c
-	}, [history])
+	// Filter, count and deduplicate in one pass over the buffer (up to 5000 lines, re-run on every
+	// incoming batch). The search runs over the whole buffer, so it is debounced rather than re-run on
+	// every keystroke.
+	const debouncedSearchQuery = useDebounced(searchQuery, 150)
+	const { counts, processedMessages } = useMemo(() => {
+		const query = debouncedSearchQuery.toLowerCase()
+		const counts = { error: 0, warn: 0, info: 0, debug: 0 }
+		const processedMessages: GroupedLogLine[] = []
 
-	// Filter and deduplicate
-	const processedMessages = useMemo(() => {
-		const filtered = history.filter((msg) => {
-			if (msg.level === 'error' || msg.level === 'fatal') {
-				if (config.error === false) return false
-			} else if (msg.level === 'warn') {
-				if (!config.warn) return false
-			} else if (msg.level === 'info') {
-				if (!config.info) return false
-			} else if (msg.level === 'debug') {
-				if (!config.debug) return false
+		for (const msg of history) {
+			const level = msg.level === 'fatal' ? 'error' : msg.level
+			if (level === 'error' || level === 'warn' || level === 'info' || level === 'debug') {
+				counts[level]++
+				if (!isLevelEnabled(config, level)) continue
 			}
 
-			if (searchQuery) {
-				const q = searchQuery.toLowerCase()
-				const matchMsg = msg.message?.toLowerCase().includes(q)
-				const matchSrc = msg.source?.toLowerCase().includes(q)
-				const matchLvl = msg.level?.toLowerCase().includes(q)
-				if (!matchMsg && !matchSrc && !matchLvl) return false
+			if (query) {
+				const matchMsg = msg.message?.toLowerCase().includes(query)
+				const matchSrc = msg.source?.toLowerCase().includes(query)
+				const matchLvl = msg.level?.toLowerCase().includes(query)
+				if (!matchMsg && !matchSrc && !matchLvl) continue
 			}
 
-			return true
-		})
-
-		if (!deduplicate) {
-			return filtered.map((line) => ({ ...line, count: 1 }))
-		}
-
-		// Deduplicate consecutive identical messages
-		const grouped: GroupedLogLine[] = []
-		for (const line of filtered) {
-			const prev = grouped[grouped.length - 1]
-			if (prev && prev.level === line.level && prev.source === line.source && prev.message === line.message) {
+			const prev = processedMessages[processedMessages.length - 1]
+			if (
+				deduplicate &&
+				prev &&
+				prev.level === msg.level &&
+				prev.source === msg.source &&
+				prev.message === msg.message
+			) {
 				prev.count += 1
-				prev.time = line.time
+				prev.time = msg.time
 			} else {
-				grouped.push({ ...line, count: 1 })
+				processedMessages.push({ ...msg, count: 1 })
 			}
 		}
-		return grouped
-	}, [history, config, searchQuery, deduplicate])
+
+		return { counts, processedMessages }
+	}, [history, config, debouncedSearchQuery, deduplicate])
 
 	const handleCopyAll = useCallback(() => {
 		const dump = processedMessages
@@ -178,104 +175,80 @@ export const LogPanel = memo(function LogPanel() {
 						<div className="flex items-center gap-1.5 flex-wrap">
 							<span className="text-xs font-semibold text-body me-1">Filters:</span>
 
-							<button
-								type="button"
-								onClick={() => doToggleConfig('error')}
-								className={classNames('log-filter-pill', config.error !== false && 'active-error')}
-							>
-								<AlertCircle className="w-3.5 h-3.5" />
-								<span>Error ({counts.error})</span>
-							</button>
-
-							<button
-								type="button"
-								onClick={() => doToggleConfig('warn')}
-								className={classNames('log-filter-pill', config.warn && 'active-warn')}
-							>
-								<AlertTriangle className="w-3.5 h-3.5" />
-								<span>Warn ({counts.warn})</span>
-							</button>
-
-							<button
-								type="button"
-								onClick={() => doToggleConfig('info')}
-								className={classNames('log-filter-pill', config.info && 'active-info')}
-							>
-								<Info className="w-3.5 h-3.5" />
-								<span>Info ({counts.info})</span>
-							</button>
-
-							<button
-								type="button"
-								onClick={() => doToggleConfig('debug')}
-								className={classNames('log-filter-pill', config.debug && 'active-debug')}
-							>
-								<Bug className="w-3.5 h-3.5" />
-								<span>Debug ({counts.debug})</span>
-							</button>
+							{LOG_LEVELS.map(({ key, label, icon: Icon, tone }) => (
+								<PillButton
+									key={key}
+									small
+									tone={tone}
+									active={isLevelEnabled(config, key)}
+									onClick={() => doToggleConfig(key)}
+								>
+									<Icon className="w-3.5 h-3.5" />
+									<span>
+										{label} ({counts[key]})
+									</span>
+								</PillButton>
+							))}
 						</div>
 
 						{/* Top Actions */}
 						<div className="flex items-center gap-2 flex-wrap">
-							<button
-								type="button"
+							<PillButton
+								tone="primary"
+								active={deduplicate}
 								onClick={() => setDeduplicate(!deduplicate)}
-								className={classNames('log-action-btn', deduplicate && 'active-toggle')}
 								title="Collapse repetitive consecutive log lines"
 							>
 								<span>Group Repeats</span>
-							</button>
+							</PillButton>
 
-							<button
-								type="button"
+							<PillButton
+								tone="primary"
+								active={autoScroll}
 								onClick={() => setAutoScroll(!autoScroll)}
-								className={classNames('log-action-btn', autoScroll ? 'active-toggle' : 'text-amber-500')}
+								className={autoScroll ? undefined : 'text-amber-500'}
 								title={autoScroll ? 'Pause auto-scroll' : 'Resume auto-scroll'}
 							>
 								{autoScroll ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
 								<span>{autoScroll ? 'Live Stream' : 'Paused'}</span>
-							</button>
+							</PillButton>
 
-							<button
-								type="button"
-								onClick={handleCopyAll}
-								className="log-action-btn"
-								title="Copy filtered logs to clipboard"
-							>
+							<PillButton tone="primary" active={false} onClick={handleCopyAll} title="Copy filtered logs to clipboard">
 								{copiedAll ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
 								<span>Copy</span>
-							</button>
+							</PillButton>
 
-							<button
-								type="button"
+							<PillButton
+								tone="primary"
+								active={false}
 								onClick={doClearLog}
-								className="log-action-btn hover:text-rose-500"
+								className="hover:text-rose-500"
 								title="Clear active log history"
 							>
 								<Trash2 className="w-3.5 h-3.5" />
 								<span>Clear</span>
-							</button>
+							</PillButton>
 
 							<a
 								href={makeAbsolutePath('/int/export/log')}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="log-action-btn"
+								className="pill-button pill-tone-primary"
 								title="Download raw log file"
 							>
 								<FileText className="w-3.5 h-3.5" />
 								<span>Export Log</span>
 							</a>
 
-							<button
-								type="button"
+							<PillButton
+								tone="primary"
+								active={false}
 								onClick={exportSupportModal}
-								className="log-action-btn"
 								title="Download full support bundle"
 							>
 								<Download className="w-3.5 h-3.5" />
 								<span>Support Bundle</span>
-							</button>
+							</PillButton>
 						</div>
 					</div>
 
@@ -360,126 +333,26 @@ interface LogPanelContentsProps {
 }
 
 function LogPanelContents({ messages, autoScroll }: LogPanelContentsProps) {
-	const parentRef = useRef<HTMLDivElement>(null)
-
 	const { data: appInfo } = useQuery(trpc.appInfo.version.queryOptions())
-	const infoLine = useMemo<GroupedLogLine>(
-		() => ({
-			time: null,
-			level: 'debug',
-			source: 'log',
-			count: 1,
-			message: appInfo?.logsDir
-				? `Older logs on disk: ${appInfo.logsDir}`
-				: 'For older logs check the console output or system logs where Companion was started.',
-		}),
-		[appInfo?.logsDir]
-	)
 
-	const count = messages.length + 1
-
-	// eslint-disable-next-line react-hooks/incompatible-library
-	const virtualizer = useVirtualizer({
-		count: count,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => 28,
-		overscan: 10,
-	})
-
-	const onScroll = useStickyScroll(parentRef, virtualizer, count)
-
-	// Auto-scroll when new items arrive if autoScroll is enabled
-	useEffect(() => {
-		if (autoScroll && parentRef.current && count > 1) {
-			virtualizer.scrollToIndex(count - 1, { align: 'end' })
-		}
-	}, [count, autoScroll, virtualizer])
-
-	const items = virtualizer.getVirtualItems()
+	const noticeMessage = appInfo?.logsDir
+		? `Older logs on disk: ${appInfo.logsDir}`
+		: 'For older logs check the console output or system logs where Companion was started.'
 
 	return (
-		<div
-			ref={parentRef}
+		<VirtualLogList
+			lines={messages}
+			header={<LogNoticeLine message={noticeMessage} />}
+			renderLine={(line) => <SystemLogLine line={line} />}
+			estimateSize={28}
+			autoScroll={autoScroll}
 			className="w-full h-full overflow-auto font-mono text-xs select-text scrollbar-thin"
-			onScroll={onScroll}
-		>
-			<div
-				style={{
-					height: virtualizer.getTotalSize(),
-					width: '100%',
-					position: 'relative',
-				}}
-			>
-				<div
-					style={{
-						position: 'absolute',
-						top: 0,
-						left: 0,
-						width: '100%',
-						transform: `translateY(${items[0]?.start ?? 0}px)`,
-					}}
-				>
-					{items.map((virtualRow) => (
-						<div key={virtualRow.key} data-index={virtualRow.index} ref={virtualizer.measureElement}>
-							<LogLineInner line={virtualRow.index === 0 ? infoLine : messages[virtualRow.index - 1]} />
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
+		/>
 	)
 }
 
-interface LogLineInnerProps {
-	line: GroupedLogLine
-}
-
-const LogLineInner = memo(({ line }: LogLineInnerProps) => {
+const SystemLogLine = memo(function SystemLogLine({ line }: { line: GroupedLogLine }) {
 	const [copied, setCopied] = useState(false)
-
-	if (line.time === null) {
-		return (
-			<div className="flex items-center gap-2 py-1.5 px-3 mb-1 rounded-lg bg-surface-muted/60 border border-border/70 text-xs text-muted font-sans">
-				<Info className="w-4 h-4 text-sky-500 shrink-0" />
-				<span className="break-words min-w-0 flex-1">{line.message}</span>
-			</div>
-		)
-	}
-
-	const time_format = dayjs(line.time).format('HH:mm:ss.SSS')
-
-	let levelBadge = null
-	let lineBgColor = 'bg-transparent'
-
-	if (line.level === 'error' || line.level === 'fatal') {
-		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-rose-500/15 text-rose-500 border border-rose-500/30 shrink-0 select-none">
-				ERROR
-			</span>
-		)
-		lineBgColor = 'bg-rose-500/5 hover:bg-rose-500/10 border-rose-500/20'
-	} else if (line.level === 'warn') {
-		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 select-none">
-				WARN
-			</span>
-		)
-		lineBgColor = 'bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20'
-	} else if (line.level === 'info') {
-		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 shrink-0 select-none">
-				INFO
-			</span>
-		)
-		lineBgColor = 'hover:bg-surface-hover/60 border-transparent'
-	} else if (line.level === 'debug') {
-		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-zinc-500/15 text-zinc-400 border border-zinc-500/25 shrink-0 select-none">
-				DEBUG
-			</span>
-		)
-		lineBgColor = 'hover:bg-surface-hover/60 border-transparent'
-	}
 
 	const handleCopy = (e: React.MouseEvent) => {
 		e.stopPropagation()
@@ -491,44 +364,23 @@ const LogLineInner = memo(({ line }: LogLineInnerProps) => {
 	}
 
 	return (
-		<div
-			className={classNames(
-				'group relative flex items-start gap-2.5 py-1 px-2.5 rounded-md transition-colors text-xs font-mono border my-0.5 leading-relaxed',
-				lineBgColor
-			)}
-		>
-			<span className="text-muted shrink-0 select-none text-2xs tabular-nums whitespace-nowrap pt-0.5">
-				{time_format}
-			</span>
-
-			<div className="shrink-0 flex items-center gap-1.5">
-				{levelBadge}
-				{line.count > 1 && (
-					<span className="px-1.5 py-0.2 rounded-full text-3xs font-bold bg-primary/20 text-primary border border-primary/30 shrink-0 select-none">
-						x{line.count}
-					</span>
-				)}
-			</div>
-
-			<span
-				className="font-semibold text-body shrink-0 max-w-[140px] truncate select-none text-2xs pt-0.5"
-				title={line.source}
-			>
-				{line.source}
-			</span>
-
-			<span className="text-body whitespace-pre-wrap break-words min-w-0 flex-1">{line.message}</span>
-
-			{/* Copy Line Action Button */}
-			<button
-				type="button"
-				onClick={handleCopy}
-				className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted hover:text-body shrink-0 cursor-pointer bg-transparent border-0 shadow-none outline-none inline-flex items-center justify-center rounded hover:bg-surface-muted"
-				title="Copy log line"
-			>
-				{copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-			</button>
-		</div>
+		<LogLine
+			line={line}
+			timeFormat="HH:mm:ss.SSS"
+			timeClassName=""
+			sourceClassName="log-source-cell text-2xs pt-0.5"
+			alwaysReserveSource={false}
+			actions={
+				<button
+					type="button"
+					onClick={handleCopy}
+					className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted hover:text-body shrink-0 cursor-pointer bg-transparent border-0 shadow-none outline-none inline-flex items-center justify-center rounded hover:bg-surface-muted"
+					title="Copy log line"
+				>
+					{copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+				</button>
+			}
+		/>
 	)
 })
 

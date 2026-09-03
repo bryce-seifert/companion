@@ -124,7 +124,7 @@ export const BackupRuleEditor = observer(function BackupRuleEditor({ ruleId }: B
 
 	return (
 		<div className="p-4 space-y-4">
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs p-4 space-y-4">
+			<div className="surface-card p-4 space-y-4">
 				<div className="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
 					<div>
 						<h4 className="text-sm font-bold text-body mb-0.5">Rule Configuration</h4>
@@ -225,7 +225,7 @@ export const BackupRuleEditor = observer(function BackupRuleEditor({ ruleId }: B
 				</Form>
 			</div>
 
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs p-4">
+			<div className="surface-card p-4">
 				<div className="flex items-center gap-2 border-b border-border/70 pb-3 mb-3">
 					<FontAwesomeIcon icon={faClock} className="text-muted text-xs" />
 					<h4 className="text-sm font-bold text-body mb-0">Previous Backups</h4>

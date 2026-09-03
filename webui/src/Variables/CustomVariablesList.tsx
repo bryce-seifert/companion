@@ -93,7 +93,7 @@ export const CustomVariablesListPage = observer(function CustomVariablesList() {
 					helpAction="/user-guide/config/variables#custom-variables"
 				/>
 
-				<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+				<div className="page-shell-body">
 					<VariablesNav activeTab="custom" />
 
 					<div className="flex flex-col flex-1 min-h-0 overflow-hidden gap-2">

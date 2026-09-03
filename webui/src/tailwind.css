@@ -76,6 +76,28 @@
 	--color-light: #e9e9e9;
 	--color-dark: #212631;
 
+	/* Status tones — the one palette behind every badge, filter pill and category chip. `-fill` is the
+	   solid hue (used at low alpha for backgrounds/borders) and `-text` the readable foreground on a
+	   light ground; the dark-scheme block near the bottom of this file lightens the text values. These
+	   are deliberately separate from `success`/`danger`/`warning`/`info` above, which are the CoreUI
+	   button/alert colours; a status badge is not a button. */
+	--color-tone-good-fill: #10b981;
+	--color-tone-good-text: #059669;
+	--color-tone-warning-fill: #f59e0b;
+	--color-tone-warning-text: #d97706;
+	--color-tone-error-fill: #f43f5e;
+	--color-tone-error-text: #e11d48;
+	--color-tone-info-fill: #0ea5e9;
+	--color-tone-info-text: #0284c7;
+	--color-tone-neutral-fill: #71717a;
+	--color-tone-neutral-text: #71717a;
+	--color-tone-accent-fill: #6366f1;
+	--color-tone-accent-text: #4f46e5;
+	--color-tone-media-fill: #a855f7;
+	--color-tone-media-text: #9333ea;
+	--color-tone-routing-fill: #06b6d4;
+	--color-tone-routing-text: #0891b2;
+
 	/* Subtle/emphasis tints per severity (used by Alert, and a few wizard/expression badges).
 	   Adopted from CoreUI's *-bg-subtle / *-border-subtle / *-text-emphasis values. */
 	--color-primary-bg-subtle: #cfc7f3;
@@ -124,7 +146,6 @@
 	--color-app-bg: #f9f9f9; /* main content area background */
 	--color-app-frame-bg: #f3f4f7; /* outer app frame behind the sidebar/header/body */
 	--color-body-bg: #f3f4f7; /* <body> element backing, behind the app chrome */
-	--color-loading-track: #3c4b64;
 
 	/* Borders */
 	--color-border: #ddd;
@@ -277,6 +298,21 @@
 	--radius-sm: 0.25rem;
 	--radius-lg: 0.5rem;
 	--border-width: 1px;
+}
+
+/* The app's own tokens are light-only; this mirrors the `dark:` Tailwind utilities (which key off
+   prefers-color-scheme) for the status tones, so a badge or pill stays readable on a dark ground. */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-tone-good-text: #34d399;
+		--color-tone-warning-text: #fbbf24;
+		--color-tone-error-text: #fb7185;
+		--color-tone-info-text: #38bdf8;
+		--color-tone-neutral-text: #a1a1aa;
+		--color-tone-accent-text: #818cf8;
+		--color-tone-media-text: #c084fc;
+		--color-tone-routing-text: #22d3ee;
+	}
 }
 
 @source '../index.html';

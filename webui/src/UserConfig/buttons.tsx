@@ -1,9 +1,9 @@
 import { faCog } from '@fortawesome/free-solid-svg-icons'
 import { observer } from 'mobx-react-lite'
 import { memo } from 'react'
-import { Table } from '~/Components/Table.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { PageIntro } from '~/Layout/PageIntro'
+import { SettingsCard } from './Components/SettingsCard.js'
 import { useUserConfigProps } from './Context.js'
 import { ButtonsConfig } from './Sections/ButtonsConfig.js'
 import { GridConfigRows } from './Sections/GridConfig.js'
@@ -14,10 +14,10 @@ export const SettingsButtonsPage = memo(function UserConfig() {
 		<div className="page-shell">
 			<PageHeader icon={faCog} title="Settings" helpAction="/user-guide/config/settings#buttons" />
 
-			<div className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
+			<div className="page-shell-body">
 				<SettingsNav activeTab="buttons" />
 
-				<div className="flex-1 min-h-0 overflow-y-auto">
+				<div className="page-scroll">
 					<div className="primary-panel">
 						<PageIntro title="Button Settings">
 							Configure button behavior, default press actions, grid dimensions, and surface controls.
@@ -37,20 +37,12 @@ const UserConfigTable = observer(function UserConfigTable() {
 
 	return (
 		<div className="w-full space-y-4">
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
-				<Table className="table-settings mb-0">
-					<tbody>
-						<ButtonsConfig {...userConfigProps} />
-					</tbody>
-				</Table>
-			</div>
-			<div className="rounded-xl border border-border/70 bg-surface shadow-xs overflow-hidden">
-				<Table className="table-settings mb-0">
-					<tbody>
-						<GridConfigRows {...userConfigProps} />
-					</tbody>
-				</Table>
-			</div>
+			<SettingsCard>
+				<ButtonsConfig {...userConfigProps} />
+			</SettingsCard>
+			<SettingsCard>
+				<GridConfigRows {...userConfigProps} />
+			</SettingsCard>
 		</div>
 	)
 })
