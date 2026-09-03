@@ -1,5 +1,4 @@
 import { DragDropProvider } from '@dnd-kit/react'
-import './loading.css'
 import './App.css'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -8,7 +7,6 @@ import { useSubscription } from '@trpc/tanstack-react-query'
 import { observer } from 'mobx-react-lite'
 import { Suspense, useCallback, useContext, useEffect, useState } from 'react'
 import { useIdleTimer } from 'react-idle-timer'
-import { PuffLoader } from 'react-spinners'
 import { Grid } from '~/Components/Grid'
 import { useEvictDeadCollapseState } from '~/Helpers/useEvictDeadCollapseState.js'
 import { useMountEffect } from '~/Resources/util.js'
@@ -23,7 +21,6 @@ import { TRPCConnectionStatus, useTRPCConnectionStatus } from './Hooks/useTRPCCo
 import { AdminLockContext } from './Layout/AdminLockContext.js'
 import { ConfigImportingOverlay, ConnectionLostOverlay } from './Layout/ConnectionLostOverlay.js'
 import { MySidebar, SidebarStateProvider, useSidebarState } from './Layout/Sidebar.js'
-import { PRIMARY_COLOR } from './Resources/Constants.js'
 import { MyErrorBoundary } from './Resources/Error.js'
 import { MonacoLoader } from './Resources/MonacoLoader.js'
 import { SortableHysteresis } from './Resources/SortableHysteresis.js'
@@ -68,15 +65,7 @@ export default function App(): React.JSX.Element {
 				<>
 					<ConnectionLostOverlay visible={wasConnected} />
 					<ConfigImportingOverlay visible={!wasConnected && !!currentImportTask} />
-					<Suspense
-						fallback={
-							<Grid.Row className={'loading'}>
-								<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-									<PuffLoader loading={true} size={80} color={PRIMARY_COLOR} />
-								</div>
-							</Grid.Row>
-						}
-					>
+					<Suspense fallback={<AppLoading progress={loadingProgress} connected={connected} />}>
 						<MonacoLoader />
 						{/*
 						 * Single global dnd-kit provider for all drag and drop. Each feature subscribes to its
@@ -305,23 +294,41 @@ interface AppLoadingProps {
 }
 
 function AppLoading({ progress, connected }: AppLoadingProps) {
-	const message = connected ? 'Syncing' : 'Connecting'
 	return (
-		<Grid.Container className="fadeIn loading">
-			<Grid.Row>
-				<Grid.Col xxl={4} md={3} sm={2} xs={1}></Grid.Col>
-				<Grid.Col xxl={4} md={6} sm={8} xs={10}>
-					<h3>{message}</h3>
-					{connected ? (
-						<ProgressBar className="mt-6" value={progress} />
-					) : (
-						<div className="flex items-center justify-center mt-6">
-							<PuffLoader loading={true} size={80} color={PRIMARY_COLOR} />
+		<div className="flex flex-col items-center justify-center min-h-[75vh] p-6 select-none">
+			<div className="bg-surface text-body border border-border/80 rounded-2xl shadow-xl p-8 sm:p-10 max-w-sm w-full flex flex-col items-center text-center">
+				<div className="w-16 h-16 rounded-2xl bg-surface-muted/80 border border-border/70 p-2.5 flex items-center justify-center mb-5 shadow-xs">
+					<img
+						src="/img/icons/128x128.png"
+						alt="Bitfocus Companion"
+						className="w-full h-full object-contain rounded-xl"
+					/>
+				</div>
+
+				<h3 className="text-lg font-bold text-body mb-1">
+					{connected ? 'Syncing Configuration' : 'Connecting to Companion'}
+				</h3>
+
+				<p className="text-xs text-muted mb-6 leading-relaxed">
+					{connected ? 'Loading surfaces, modules, and controls…' : 'Establishing real-time connection…'}
+				</p>
+
+				{connected ? (
+					<div className="w-full space-y-2">
+						<ProgressBar className="h-2 rounded-full overflow-hidden" value={progress} />
+						<div className="flex justify-between text-2xs text-muted font-mono font-medium px-0.5">
+							<span>Loading workspace</span>
+							<span>{Math.round(progress)}%</span>
 						</div>
-					)}
-				</Grid.Col>
-			</Grid.Row>
-		</Grid.Container>
+					</div>
+				) : (
+					<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-muted/60 border border-border/70 text-xs text-muted font-medium shadow-xs">
+						<span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+						<span>Locating server…</span>
+					</div>
+				)}
+			</div>
+		</div>
 	)
 }
 

@@ -123,7 +123,7 @@
 	--color-surface-dark: #222; /* dark panel/inset surface (tablet, emulator, button editor) */
 	--color-app-bg: #f9f9f9; /* main content area background */
 	--color-app-frame-bg: #f3f4f7; /* outer app frame behind the sidebar/header/body */
-	--color-body-bg: #333; /* <body> element backing, behind the app chrome */
+	--color-body-bg: #f3f4f7; /* <body> element backing, behind the app chrome */
 	--color-loading-track: #3c4b64;
 
 	/* Borders */
