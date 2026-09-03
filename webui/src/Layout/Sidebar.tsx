@@ -20,6 +20,7 @@ import {
 	faStar,
 	faTableCells,
 	faTabletScreenButton,
+	faWandMagicSparkles,
 	type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -203,8 +204,9 @@ function SidebarMenuItem(item: SidebarMenuItemProps) {
 // })
 
 function HelpSidebarMenuItem() {
-	const { whatsNewModal, notifier } = useContext(RootAppStoreContext)
+	const { whatsNewModal, notifier, wizardOpen } = useContext(RootAppStoreContext)
 	const whatsNewOpen = useCallback(() => whatsNewModal.current?.show(), [whatsNewModal])
+	const openWizard = useCallback(() => wizardOpen.set(true), [wizardOpen])
 
 	const { versionName, versionBuild, os, browser } = useCompanionVersion(true)
 	const sysinfo = useMemo(() => {
@@ -241,6 +243,14 @@ function HelpSidebarMenuItem() {
 				inNewTab: true,
 			},
 			{
+				id: 'setup-wizard',
+				label: 'Getting Started Wizard',
+				icon: faWandMagicSparkles,
+				do: openWizard,
+				tooltip: 'Open the initial setup and configuration wizard.',
+				inNewTab: false,
+			},
+			{
 				id: 'whats-new',
 				label: "What's New",
 				icon: faStar,
@@ -257,7 +267,7 @@ function HelpSidebarMenuItem() {
 				copyToClipboard: copyVersionToClipboard,
 			},
 		],
-		[copyVersionToClipboard, sysinfo, whatsNewOpen]
+		[copyVersionToClipboard, openWizard, sysinfo, whatsNewOpen]
 	)
 
 	return (
