@@ -2,6 +2,21 @@
    in utilities.css.) */
 
 /* ── Element defaults ─────────────────────────────────────────────────────── */
+button {
+	appearance: none;
+	-webkit-appearance: none;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	color: inherit;
+	text-align: inherit;
+	text-decoration: none;
+	box-shadow: none;
+	outline: none;
+}
+
 h4,
 h5 {
 	font-weight: bold;

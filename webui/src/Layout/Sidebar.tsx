@@ -15,6 +15,7 @@ import {
 	faGamepad,
 	faImages,
 	faInfo,
+	faMagnifyingGlass,
 	faPlug,
 	faPuzzlePiece,
 	faStar,
@@ -123,6 +124,35 @@ function NarrowModePopover({ title, children }: { title: React.ReactNode; childr
 				{title}
 			</Tooltip.Popup>
 		</Tooltip.Root>
+	)
+}
+
+function SidebarSearchButton() {
+	const isNarrow = useContext(NarrowModeContext)
+
+	const openSearch = () => {
+		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
+	}
+
+	return (
+		<div className="px-3 py-1.5 list-none">
+			<button
+				type="button"
+				onClick={openSearch}
+				title="Search or Jump to... (⌘K / Ctrl+K)"
+				className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-surface-muted/70 hover:bg-surface-muted text-muted hover:text-body border border-border/70 text-xs transition-colors cursor-pointer text-left"
+			>
+				<div className="flex items-center gap-2 min-w-0">
+					<FontAwesomeIcon icon={faMagnifyingGlass} className="text-2xs" />
+					{!isNarrow && <span className="truncate">Search or jump...</span>}
+				</div>
+				{!isNarrow && (
+					<span className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-3xs font-mono font-medium text-zinc-400 bg-black/25 border border-white/10 rounded leading-none">
+						⌘K
+					</span>
+				)}
+			</button>
+		</div>
 	)
 }
 
@@ -445,6 +475,8 @@ export const MySidebar = memo(function MySidebar() {
 			>
 				<ContextMenu {...contextState} />
 				<SidebarHeader />
+
+				<SidebarSearchButton />
 
 				<ul className="sidebar-nav nav-main-scroller">
 					{/* Category: Program */}

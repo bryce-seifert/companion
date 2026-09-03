@@ -1,9 +1,7 @@
-import { faQuestionCircle, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { CircleHelp, X } from 'lucide-react'
 import './PanelIcons.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { Button, LinkButtonExternal } from '~/Components/Button'
 import { InlineHelpCustom } from '~/Components/InlineHelp'
 import { makeAbsolutePath } from '~/Resources/util'
 
@@ -31,7 +29,7 @@ export function CloseButton({ closeFn, visibilityClass, className }: CloseButton
 			title="Close panel"
 			aria-label="Close panel"
 		>
-			<FontAwesomeIcon icon={faTimes} className="text-sm" />
+			<X className="w-4 h-4" />
 		</button>
 	)
 }
@@ -66,35 +64,25 @@ export function ContextHelpButton({ children, action, className }: ContextHelpBu
 		children += ' Click the icon for further help.'
 	}
 
-	// note some styling here needs to be on the FontAwesomeIcon, not .context-help-button or the Button,
-	//  in order to get the shadowing right. However it will have to be hand-coded for different sizes even if using em units
-	//  See _layout.scss for the context-help-button-2xl example (FontAwesomeIcons get class 'fa-<size>')
-	// NOTE: removed the float_right class here -- we end up fighting against its margin and it doesn't seem to do much else...
 	return (
 		<>
 			<HelpWrapper usePopover={!!children} help={children} className={className}>
 				{typeof action === 'string' ? (
 					// note: string is currently typed to link to /user-guide/, which is not a Tanstack route
-					<LinkButtonExternal
-						variant="ghost"
-						className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-full text-muted hover:text-primary hover:bg-primary/10 transition-all hover:scale-105 align-middle p-0 shrink-0"
+					<a
+						className="panel-icon-button"
 						href={makeAbsolutePath(action)}
 						target="_blank"
 						rel="noopener noreferrer"
-						// onClick={removeFocus}
 						title="Open help documentation in a new tab"
 						aria-label="Open help documentation in a new tab"
 					>
-						<FontAwesomeIcon icon={faQuestionCircle} className="text-xs" aria-label="context help" />
-					</LinkButtonExternal>
+						<CircleHelp className="w-4 h-4" aria-label="context help" />
+					</a>
 				) : (
-					<Button
-						variant="ghost"
-						className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-full text-muted hover:text-primary hover:bg-primary/10 transition-all hover:scale-105 align-middle p-0 shrink-0"
-						onClick={onClickAction}
-					>
-						<FontAwesomeIcon icon={faQuestionCircle} className="text-xs" aria-label="context help" />
-					</Button>
+					<button type="button" className="panel-icon-button" onClick={onClickAction} title="Help" aria-label="Help">
+						<CircleHelp className="w-4 h-4" aria-label="context help" />
+					</button>
 				)}
 			</HelpWrapper>
 			<span ref={afterElementRef} tabIndex={-1} style={{ outline: 'none' }} aria-hidden="true" />

@@ -1,13 +1,6 @@
 import { useDragDropMonitor } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
-import {
-	faClone,
-	faCompressArrowsAlt,
-	faExpandArrowsAlt,
-	faPencil,
-	faSort,
-	faTrash,
-} from '@fortawesome/free-solid-svg-icons'
+import { faAnglesDown, faAnglesUp, faClone, faPencil, faSort, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import classNames from 'classnames'
 import { observer } from 'mobx-react-lite'
@@ -78,23 +71,37 @@ export const TriggerEventEditor = observer(function TriggerEventEditor({
 			<GenericConfirmModal ref={confirmModal} />
 
 			{heading && (
-				<h5 className="mt-2">
-					{heading}
+				<div className="flex items-center justify-between gap-2 mt-3 mb-2">
+					<div className="text-sm font-semibold text-body">{heading}</div>
 					{events.length > 1 && (
-						<ButtonGroup className="float-right">
+						<div className="flex items-center gap-1 shrink-0">
 							{panelCollapseHelper.canExpandAll() && (
-								<Button size="sm" onClick={panelCollapseHelper.setAllExpanded} title="Expand all events">
-									<FontAwesomeIcon icon={faExpandArrowsAlt} />
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={panelCollapseHelper.setAllExpanded}
+									title="Expand all events"
+									className="text-muted hover:text-body text-xs px-2 py-0.5 flex items-center gap-1.5"
+								>
+									<FontAwesomeIcon icon={faAnglesDown} className="text-2xs" />
+									<span className="text-3xs font-medium">Expand all</span>
 								</Button>
 							)}
 							{panelCollapseHelper.canCollapseAll() && (
-								<Button size="sm" onClick={panelCollapseHelper.setAllCollapsed} title="Collapse all events">
-									<FontAwesomeIcon icon={faCompressArrowsAlt} />
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={panelCollapseHelper.setAllCollapsed}
+									title="Collapse all events"
+									className="text-muted hover:text-body text-xs px-2 py-0.5 flex items-center gap-1.5"
+								>
+									<FontAwesomeIcon icon={faAnglesUp} className="text-2xs" />
+									<span className="text-3xs font-medium">Collapse all</span>
 								</Button>
 							)}
-						</ButtonGroup>
+						</div>
 					)}
-				</h5>
+				</div>
 			)}
 			{subheading}
 
@@ -276,11 +283,11 @@ const EventEditor = observer(function EventEditor({
 						)}
 						{isCollapsed ? (
 							<Button size="sm" onClick={doExpand} title="Expand event view">
-								<FontAwesomeIcon icon={faExpandArrowsAlt} />
+								<FontAwesomeIcon icon={faAnglesDown} />
 							</Button>
 						) : (
 							<Button size="sm" onClick={doCollapse} title="Collapse event view">
-								<FontAwesomeIcon icon={faCompressArrowsAlt} />
+								<FontAwesomeIcon icon={faAnglesUp} />
 							</Button>
 						)}
 						<Button size="sm" onClick={service.performDuplicate} title="Duplicate event">

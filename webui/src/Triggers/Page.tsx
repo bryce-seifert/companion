@@ -247,6 +247,25 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 
 	const setOptionsFieldMutation = useMutationExt(trpc.controls.setOptionsField.mutationOptions())
 
+	const { notifier } = useContext(RootAppStoreContext)
+	const testActionsMutation = useMutationExt(trpc.controls.triggers.testActions.mutationOptions())
+
+	const doTestRun = useCallback(
+		(e: React.MouseEvent) => {
+			e.stopPropagation()
+			const controlId = CreateTriggerControlId(item.id)
+			testActionsMutation
+				.mutateAsync({ controlId })
+				.then(() => {
+					notifier.show('Trigger Tested', `Fired trigger "${item.name}"`, 3000)
+				})
+				.catch((err) => {
+					notifier.show('Test Failed', String(err), 4000)
+				})
+		},
+		[testActionsMutation, item.id, item.name, notifier]
+	)
+
 	const doEnableDisable = useCallback(
 		(enabled: boolean) => {
 			setOptionsFieldMutation
@@ -301,18 +320,23 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 	return (
 		<div
 			className={classnames(
-				'flex flex-row items-center gap-3 cursor-pointer py-2 px-3 rounded-lg transition-colors hover:bg-surface-muted/50',
+				'group flex flex-row items-center gap-3 cursor-pointer py-2 px-3 rounded-lg transition-all',
 				isSelected
-					? 'bg-primary/10 font-semibold text-primary border-l-4 border-l-primary rounded-l-none'
-					: 'bg-transparent'
+					? 'bg-primary/10 font-semibold text-primary ring-1 ring-primary/30 shadow-xs'
+					: 'hover:bg-surface-muted/60'
 			)}
 		>
 			<div
 				className={classnames('flex flex-col grow min-w-0', { 'opacity-60': triggerOrCollectionDisabled })}
 				onClick={doEdit}
 			>
-				<b className="truncate text-sm font-semibold text-body-strong flex items-center gap-2">
+				<div className="truncate text-sm font-semibold text-body flex items-center gap-2">
 					<span>{item.name}</span>
+					{item.enabled && !collectionDisabled && (
+						<span className="text-3xs font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+							Active
+						</span>
+					)}
 					{item.isRateLimited && (
 						<span
 							className="text-amber-500 font-normal text-xs flex items-center gap-1"
@@ -321,10 +345,10 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 							<FontAwesomeIcon icon={faTriangleExclamation} /> Rate limited
 						</span>
 					)}
-				</b>
-				<span className="truncate text-xs text-muted/80 font-normal" dangerouslySetInnerHTML={descriptionHtml} />
+				</div>
+				<span className="truncate text-xs text-muted/80 font-normal mt-0.5" dangerouslySetInnerHTML={descriptionHtml} />
 				{item.lastExecuted && (
-					<small className="text-2xs tabular-nums text-muted/70">
+					<small className="text-3xs tabular-nums text-muted/70 mt-0.5">
 						Last run: {dayjs(item.lastExecuted).format(tableDateFormat)}
 					</small>
 				)}
@@ -341,31 +365,44 @@ const TriggersTableRow = observer(function TriggersTableRow2({ item }: TriggersT
 					}
 				/>
 
-				<ButtonGroup>
-					<Button color="secondary" size="sm" onClick={doClone} title="Clone Trigger">
-						<FontAwesomeIcon icon={faClone} className="me-1.5" />
-						<span>Clone</span>
+				<div className="flex items-center gap-1">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={doTestRun}
+						title="Test Run Trigger (Fire actions now)"
+						className="text-muted hover:text-emerald-600 p-1.5"
+					>
+						<FontAwesomeIcon icon={faPlay} className="text-xs" />
+					</Button>
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={doClone}
+						title="Clone Trigger"
+						className="text-muted hover:text-body p-1.5"
+					>
+						<FontAwesomeIcon icon={faClone} className="text-xs" />
 					</Button>
 					<LinkButtonExternal
-						color="secondary"
+						variant="ghost"
 						size="sm"
 						href={makeAbsolutePath(`/int/export/triggers/single/${item.id}`)}
 						title="Export Trigger"
+						className="text-muted hover:text-body p-1.5"
 					>
-						<FontAwesomeIcon icon={faDownload} className="me-1.5" />
-						<span>Export</span>
+						<FontAwesomeIcon icon={faDownload} className="text-xs" />
 					</LinkButtonExternal>
 					<Button
-						color="secondary"
+						variant="ghost"
 						size="sm"
 						onClick={doDelete}
 						title="Delete Trigger"
-						className="text-rose-500 hover:bg-rose-500/10"
+						className="text-muted hover:text-rose-500 p-1.5"
 					>
-						<FontAwesomeIcon icon={faTrash} className="me-1.5 text-rose-500" />
-						<span>Delete</span>
+						<FontAwesomeIcon icon={faTrash} className="text-xs" />
 					</Button>
-				</ButtonGroup>
+				</div>
 			</div>
 		</div>
 	)

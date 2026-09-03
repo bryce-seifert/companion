@@ -12,11 +12,13 @@ export const RefreshModulesList = observer(function RefreshModulesList({
 	className,
 	iconOnly,
 	color = 'primary',
+	variant,
 }: {
 	btnSize?: 'sm' | 'lg'
 	className?: string
 	iconOnly?: boolean
 	color?: ButtonColor
+	variant?: 'ghost' | 'outline'
 }) {
 	const { moduleStoreRefreshProgress } = useContext(RootAppStoreContext)
 
@@ -40,6 +42,7 @@ export const RefreshModulesList = observer(function RefreshModulesList({
 			{refreshProgress !== 1 ? (
 				<Button
 					color={color}
+					variant={variant}
 					disabled
 					size={btnSize}
 					title={`Refreshing modules list ${Math.round(refreshProgress * 100)}%`}
@@ -51,6 +54,7 @@ export const RefreshModulesList = observer(function RefreshModulesList({
 			) : (
 				<Button
 					color={color}
+					variant={variant}
 					onClick={doRefreshModules}
 					size={btnSize}
 					title="Refresh modules list"

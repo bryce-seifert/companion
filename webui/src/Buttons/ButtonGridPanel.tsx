@@ -10,12 +10,14 @@ import { Grid } from '~/Components/Grid'
 import { useHasBeenRendered } from '~/Hooks/useHasBeenRendered.js'
 import { PageHeader } from '~/Layout/PageHeader.js'
 import { KeyReceiver, makeAbsolutePath } from '~/Resources/util.js'
+import type { PagesStoreModel } from '~/Stores/PagesStore.js'
 import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import { ButtonGridActions, type ButtonGridActionsRef } from './ButtonGridActions.js'
 import { ButtonGridHeader } from './ButtonGridHeader.js'
 import { ButtonGridResizePrompt } from './ButtonGridResizePrompt.js'
 import { ButtonInfiniteGrid, PrimaryButtonGridIcon, type ButtonInfiniteGridRef } from './ButtonInfiniteGrid.js'
 import { EditPagePropertiesModal, type EditPagePropertiesModalRef } from './EditPageProperties.js'
+import { PageMatrixModal, type PageMatrixModalRef } from './PageMatrixModal.js'
 
 interface ButtonsGridPanelProps {
 	pageNumber: number
@@ -79,10 +81,9 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 		[changePage, pageNumber, pages]
 	)
 
-	const pageInfo = pages.get(pageNumber)
-
 	const gridRef = useRef<ButtonInfiniteGridRef>(null)
 	const editRef = useRef<EditPagePropertiesModalRef>(null)
+	const pageMatrixRef = useRef<PageMatrixModalRef>(null)
 
 	const exportModalRef = useRef<ConfirmExportModalRef>(null)
 	const showExportModal = useCallback(() => {
@@ -93,9 +94,14 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 		gridRef.current?.resetPosition()
 	}, [gridRef])
 
-	const configurePage = useCallback(() => {
-		editRef.current?.show(Number(pageNumber), pageInfo)
-	}, [pageNumber, pageInfo])
+	const configurePage = useCallback(
+		(targetPage?: number, targetPageInfo?: PagesStoreModel | undefined) => {
+			const pNum = typeof targetPage === 'number' ? targetPage : pageNumber
+			const pInf = targetPageInfo ?? pages.get(pNum)
+			editRef.current?.show(Number(pNum), pInf)
+		},
+		[pageNumber, pages]
+	)
 
 	const gridSize = userConfig.properties?.gridSize
 
@@ -106,6 +112,12 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 			<div className="button-grid-panel-header" ref={isInViewRef}>
 				<ConfirmExportModal ref={exportModalRef} title="Export Page" />
 				<EditPagePropertiesModal ref={editRef} includeName />
+				<PageMatrixModal
+					ref={pageMatrixRef}
+					currentPageNumber={pageNumber}
+					onSelectPage={setPage}
+					onConfigurePage={configurePage}
+				/>
 
 				<PageHeader icon={faTableCells} title="Buttons" helpAction="/user-guide/config/buttons/" />
 
@@ -114,11 +126,20 @@ export const ButtonsGridPanel = observer(function ButtonsPage({
 				<Grid.Row>
 					<Grid.Col sm={12}>
 						<ButtonGridHeader pageNumber={pageNumber} changePage={changePage2} setPage={setPage}>
+							<Button
+								color="primary"
+								onClick={() => pageMatrixRef.current?.show()}
+								title="Open Page Matrix & Overview"
+								className="ms-1 font-medium"
+							>
+								<FontAwesomeIcon icon={faTableCells} className="me-1.5" />
+								<span>Page Matrix</span>
+							</Button>
 							<Button color="light" onClick={resetPosition} title="Home Position" className="ms-1">
 								<FontAwesomeIcon icon={faHome} className="me-1.5" />
 								<span>Home</span>
 							</Button>
-							<Button color="light" onClick={configurePage} title="Edit Page" className="ms-1">
+							<Button color="light" onClick={() => configurePage()} title="Edit Page" className="ms-1">
 								<FontAwesomeIcon icon={faPencil} className="me-1.5" />
 								<span>Edit Page</span>
 							</Button>

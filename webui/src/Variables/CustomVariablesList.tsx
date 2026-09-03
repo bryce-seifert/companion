@@ -1,10 +1,4 @@
-import {
-	faCompressArrowsAlt,
-	faDollarSign,
-	faExpandArrowsAlt,
-	faLayerGroup,
-	faList,
-} from '@fortawesome/free-solid-svg-icons'
+import { faAnglesDown, faAnglesUp, faDollarSign, faLayerGroup, faList } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useRef, useState } from 'react'
@@ -177,8 +171,9 @@ const ExpandCollapseButtons = observer(function ExpandCollapseButtons() {
 					size="sm"
 					onClick={() => panelCollapseHelper.setAllExpanded(null, rootPanels)}
 					title="Expand all"
+					className="flex items-center gap-1.5"
 				>
-					<FontAwesomeIcon icon={faExpandArrowsAlt} /> Expand All
+					<FontAwesomeIcon icon={faAnglesDown} className="text-2xs" /> Expand All
 				</Button>
 			)}
 			{panelCollapseHelper.canCollapseAll(null, rootPanels) && (
@@ -187,8 +182,9 @@ const ExpandCollapseButtons = observer(function ExpandCollapseButtons() {
 					size="sm"
 					onClick={() => panelCollapseHelper.setAllCollapsed(null, rootPanels)}
 					title="Collapse all"
+					className="flex items-center gap-1.5"
 				>
-					<FontAwesomeIcon icon={faCompressArrowsAlt} /> Collapse All
+					<FontAwesomeIcon icon={faAnglesUp} className="text-2xs" /> Collapse All
 				</Button>
 			)}
 		</>

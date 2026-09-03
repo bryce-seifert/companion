@@ -1,16 +1,31 @@
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import '../Modules/modules-manage.css'
 import './AddInstancePanel.css'
-import { faArrowLeft, faCog, faExternalLink, faPlug, faPlus, faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
+import {
+	faArrowLeft,
+	faCamera,
+	faCog,
+	faExternalLink,
+	faLightbulb,
+	faList,
+	faNetworkWired,
+	faPlug,
+	faPlus,
+	faStar,
+	faTv,
+	faVideo,
+	faVolumeHigh,
+} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Link } from '@tanstack/react-router'
 import classNames from 'classnames'
+import { BookOpen } from 'lucide-react'
 import { observer } from 'mobx-react-lite'
 import { useCallback, useContext, useEffect, useId, useMemo, useState } from 'react'
 import { ModuleInstanceType } from '@companion-app/shared/Model/Instance.js'
 import type { ClientModuleVersionInfo } from '@companion-app/shared/Model/ModuleInfo.js'
 import { StaticAlert } from '~/Components/Alert.js'
-import { Button, ButtonGroup } from '~/Components/Button.js'
+import { Button } from '~/Components/Button.js'
 import { SimpleDropdownInputField } from '~/Components/DropdownInputFieldSimple.js'
 import { Form } from '~/Components/Form.js'
 import { NonIdealState } from '~/Components/NonIdealState.js'
@@ -28,6 +43,108 @@ import { RootAppStoreContext } from '~/Stores/RootAppStore.js'
 import type { AddInstanceService } from './AddInstanceService.js'
 import { ModuleVersionsRefresh } from './ModuleVersionsRefresh.js'
 import { useModuleVersionSelectOptions } from './useModuleVersionSelectOptions.js'
+
+type BroadcastCategory = 'popular' | 'video' | 'camera' | 'audio' | 'media' | 'lighting' | 'routing' | 'all'
+
+function getModuleCategory(item: FuzzyProduct): {
+	category: BroadcastCategory
+	isPopular: boolean
+	badgeLabel: string
+} {
+	const str = `${item.name} ${item.product || ''} ${item.moduleId}`.toLowerCase()
+
+	const isPopular =
+		str.includes('atem') ||
+		str.includes('obs') ||
+		str.includes('vmix') ||
+		str.includes('propresenter') ||
+		str.includes('ptzoptics') ||
+		str.includes('yamaha') ||
+		str.includes('x32') ||
+		str.includes('behringer') ||
+		str.includes('internal') ||
+		str.includes('hyperdeck') ||
+		str.includes('videohub') ||
+		str.includes('tricaster') ||
+		str.includes('companion')
+
+	if (
+		str.includes('atem') ||
+		str.includes('vmix') ||
+		str.includes('tricaster') ||
+		str.includes('switcher') ||
+		str.includes('ross') ||
+		str.includes('roland')
+	) {
+		return { category: 'video', isPopular, badgeLabel: 'Video Switcher' }
+	}
+	if (
+		str.includes('camera') ||
+		str.includes('ptz') ||
+		str.includes('visca') ||
+		str.includes('birddog') ||
+		str.includes('sony') ||
+		str.includes('panasonic') ||
+		str.includes('canon')
+	) {
+		return { category: 'camera', isPopular, badgeLabel: 'PTZ & Camera' }
+	}
+	if (
+		str.includes('audio') ||
+		str.includes('mixer') ||
+		str.includes('yamaha') ||
+		str.includes('behringer') ||
+		str.includes('x32') ||
+		str.includes('wing') ||
+		str.includes('dante') ||
+		str.includes('soundcraft') ||
+		str.includes('q-sys') ||
+		str.includes('qsys') ||
+		str.includes('shure')
+	) {
+		return { category: 'audio', isPopular, badgeLabel: 'Audio & DSP' }
+	}
+	if (
+		str.includes('propresenter') ||
+		str.includes('obs') ||
+		str.includes('resolume') ||
+		str.includes('caspar') ||
+		str.includes('vlc') ||
+		str.includes('hyperdeck') ||
+		str.includes('playout') ||
+		str.includes('media') ||
+		str.includes('mitti') ||
+		str.includes('playback')
+	) {
+		return { category: 'media', isPopular, badgeLabel: 'Playout & GFX' }
+	}
+	if (
+		str.includes('dmx') ||
+		str.includes('light') ||
+		str.includes('artnet') ||
+		str.includes('chamsys') ||
+		str.includes('grandma') ||
+		str.includes('etc') ||
+		str.includes('onyx') ||
+		str.includes('avolites')
+	) {
+		return { category: 'lighting', isPopular, badgeLabel: 'Lighting & DMX' }
+	}
+	if (
+		str.includes('videohub') ||
+		str.includes('router') ||
+		str.includes('routing') ||
+		str.includes('matrix') ||
+		str.includes('aja') ||
+		str.includes('kumo') ||
+		str.includes('magewell') ||
+		str.includes('ndi')
+	) {
+		return { category: 'routing', isPopular, badgeLabel: 'Routing & Matrix' }
+	}
+
+	return { category: 'all', isPopular, badgeLabel: 'Integration' }
+}
 
 interface AddInstancePanelProps {
 	service: AddInstanceService
@@ -48,6 +165,7 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 	const { modules } = useContext(RootAppStoreContext)
 
 	const [filter, setFilter] = useState('')
+	const [selectedCategory, setSelectedCategory] = useState<BroadcastCategory>('popular')
 
 	const [selectedModule, setSelectedModule] = useState<FuzzyProduct | null>(null)
 	const addInstance = useCallback((moduleInfo: FuzzyProduct) => {
@@ -73,9 +191,43 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 		[allProducts]
 	)
 
+	// Calculate counts for categories
+	const categoryCounts = useMemo(() => {
+		const counts: Record<BroadcastCategory, number> = {
+			popular: 0,
+			video: 0,
+			camera: 0,
+			audio: 0,
+			media: 0,
+			lighting: 0,
+			routing: 0,
+			all: typeProducts.length,
+		}
+
+		for (const p of typeProducts) {
+			const cat = getModuleCategory(p)
+			if (cat.isPopular) counts.popular++
+			if (cat.category !== 'all') counts[cat.category]++
+		}
+
+		return counts
+	}, [typeProducts])
+
+	// Filter products by selected category if not searching
+	const filteredByCategory = useMemo(() => {
+		if (filter) return typeProducts // If user is actively typing a search query, search everything!
+
+		if (selectedCategory === 'all') return typeProducts
+		if (selectedCategory === 'popular') {
+			return typeProducts.filter((p) => getModuleCategory(p).isPopular)
+		}
+
+		return typeProducts.filter((p) => getModuleCategory(p).category === selectedCategory)
+	}, [typeProducts, selectedCategory, filter])
+
 	let candidates: React.JSX.Element[] = []
 	try {
-		const searchResults = filterProducts(typeProducts, filter, false)
+		const searchResults = filterProducts(filteredByCategory, filter, false)
 
 		const candidatesObj: Record<string, React.JSX.Element> = {}
 		for (const moduleInfo of searchResults) {
@@ -151,7 +303,12 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 										<span>•</span>
 										<span className="inline-flex items-center gap-1">
 											<LastUpdatedTimestamp timestamp={modules.storeUpdateInfo.lastUpdated} />
-											<RefreshModulesList btnSize="sm" color="secondary" iconOnly className="inline-flex" />
+											<RefreshModulesList
+												btnSize="sm"
+												variant="ghost"
+												iconOnly
+												className="inline-flex text-muted hover:text-body"
+											/>
 										</span>
 										<span>•</span>
 										<a
@@ -170,24 +327,22 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 								</div>
 
 								{storeModulesOfTypeCount > 0 && (
-									<ButtonGroup className="shrink-0">
-										<Button
-											color={typeFilter.visibility.available ? 'primary' : 'secondary'}
-											size="sm"
-											active={typeFilter.visibility.available}
+									<div className="type-filter-segmented">
+										<button
+											type="button"
 											onClick={() => typeFilter.toggleVisibility('available', true)}
+											className={classNames('type-filter-btn', typeFilter.visibility.available && 'active')}
 										>
 											All Available ({totalModulesCount})
-										</Button>
-										<Button
-											color={!typeFilter.visibility.available ? 'primary' : 'secondary'}
-											size="sm"
-											active={!typeFilter.visibility.available}
+										</button>
+										<button
+											type="button"
 											onClick={() => typeFilter.toggleVisibility('available', false)}
+											className={classNames('type-filter-btn', !typeFilter.visibility.available && 'active')}
 										>
 											Installed Only ({installedModulesCount})
-										</Button>
-									</ButtonGroup>
+										</button>
+									</div>
 								)}
 							</div>
 
@@ -198,6 +353,81 @@ export const AddInstancePanel = observer(function AddInstancePanel({
 								placeholder="Search devices (e.g. ATEM, OBS, vMix, PTZOptics, Yamaha)..."
 								className="w-full h-9"
 							/>
+
+							{/* Broadcast Domain Category Tabs */}
+							<div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('popular')}
+									className={classNames('category-tab-btn', selectedCategory === 'popular' && 'active-popular')}
+								>
+									<FontAwesomeIcon icon={faStar} className="text-2xs" />
+									<span>Popular ({categoryCounts.popular})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('video')}
+									className={classNames('category-tab-btn', selectedCategory === 'video' && 'active-video')}
+								>
+									<FontAwesomeIcon icon={faVideo} className="text-2xs" />
+									<span>Video Switchers ({categoryCounts.video})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('camera')}
+									className={classNames('category-tab-btn', selectedCategory === 'camera' && 'active-camera')}
+								>
+									<FontAwesomeIcon icon={faCamera} className="text-2xs" />
+									<span>Cameras & PTZ ({categoryCounts.camera})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('audio')}
+									className={classNames('category-tab-btn', selectedCategory === 'audio' && 'active-audio')}
+								>
+									<FontAwesomeIcon icon={faVolumeHigh} className="text-2xs" />
+									<span>Audio & DSP ({categoryCounts.audio})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('media')}
+									className={classNames('category-tab-btn', selectedCategory === 'media' && 'active-media')}
+								>
+									<FontAwesomeIcon icon={faTv} className="text-2xs" />
+									<span>Playout & GFX ({categoryCounts.media})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('lighting')}
+									className={classNames('category-tab-btn', selectedCategory === 'lighting' && 'active-lighting')}
+								>
+									<FontAwesomeIcon icon={faLightbulb} className="text-2xs" />
+									<span>Lighting & DMX ({categoryCounts.lighting})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('routing')}
+									className={classNames('category-tab-btn', selectedCategory === 'routing' && 'active-routing')}
+								>
+									<FontAwesomeIcon icon={faNetworkWired} className="text-2xs" />
+									<span>Routing & Matrix ({categoryCounts.routing})</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setSelectedCategory('all')}
+									className={classNames('category-tab-btn', selectedCategory === 'all' && 'active-all')}
+								>
+									<FontAwesomeIcon icon={faList} className="text-2xs" />
+									<span>All ({categoryCounts.all})</span>
+								</button>
+							</div>
 						</div>
 
 						<div id="connection_add_search_results" className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -280,11 +510,13 @@ const AddInstanceEntry = observer(function AddInstanceEntry({ moduleInfo, addIns
 	const isInstalled = !!moduleInfo.installedInfo
 	const isLegacy = moduleInfo.installedInfo?.stableVersion?.isLegacy
 
+	const categoryMeta = useMemo(() => getModuleCategory(moduleInfo), [moduleInfo])
+
 	return (
 		<div
 			onClick={isLimitReached ? undefined : addInstanceClick}
 			className={classNames(
-				'group relative flex flex-col justify-between p-3.5 rounded-md border border-border/70 bg-surface hover:border-primary/50 hover:shadow-md transition-all',
+				'group relative flex flex-col justify-between p-3.5 rounded-xl border border-border bg-surface hover:border-primary/60 hover:shadow-md transition-all',
 				isLimitReached ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
 			)}
 		>
@@ -294,6 +526,9 @@ const AddInstanceEntry = observer(function AddInstanceEntry({ moduleInfo, addIns
 						{moduleInfo.product || moduleInfo.name}
 					</h4>
 					<div className="flex items-center gap-1 shrink-0">
+						<span className="px-1.5 py-0.5 rounded text-3xs font-medium bg-surface-muted text-muted border border-border">
+							{categoryMeta.badgeLabel}
+						</span>
 						{isInstalled ? (
 							<span className="px-1.5 py-0.5 rounded text-3xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
 								Installed
@@ -321,7 +556,7 @@ const AddInstanceEntry = observer(function AddInstanceEntry({ moduleInfo, addIns
 				</div>
 			</div>
 
-			<div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40 mt-auto">
+			<div className="flex items-center justify-between gap-2 pt-2.5 border-t border-border/50 mt-auto">
 				{/* Actions / Links */}
 				<div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
 					<Link
@@ -351,13 +586,8 @@ const AddInstanceEntry = observer(function AddInstanceEntry({ moduleInfo, addIns
 						</WindowLinkOpen>
 					)}
 					{showHelpForVersion?.helpPath && (
-						<button
-							type="button"
-							className="text-muted hover:text-body text-xs p-1 cursor-pointer bg-transparent border-0"
-							title="Show documentation"
-							onClick={showHelpClick}
-						>
-							<FontAwesomeIcon icon={faQuestionCircle} />
+						<button type="button" onClick={showHelpClick} className="add-instance-ghost-btn" title="View documentation">
+							<BookOpen className="w-3.5 h-3.5" />
 						</button>
 					)}
 				</div>
@@ -518,11 +748,12 @@ const AddInstanceConfigureStep = observer(function AddInstanceConfigureStep({
 								{selectedVersionInfo && (
 									<button
 										type="button"
-										className="text-muted hover:text-body text-xs cursor-pointer bg-transparent border-0"
+										className="text-muted hover:text-primary text-xs cursor-pointer bg-transparent border-0 flex items-center gap-1 transition-colors"
 										onClick={showHelpClick}
 										title="View module documentation"
 									>
-										<FontAwesomeIcon icon={faQuestionCircle} className="me-1" /> Docs
+										<BookOpen className="w-3 h-3" />
+										<span>Docs</span>
 									</button>
 								)}
 								{isModuleOnStore && (

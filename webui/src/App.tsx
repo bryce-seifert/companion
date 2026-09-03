@@ -19,6 +19,7 @@ import { ContextData } from './ContextData.js'
 import { EntityDragLayer } from './Controls/Components/EntityDragLayer.js'
 import { TRPCConnectionStatus, useTRPCConnectionStatus } from './Hooks/useTRPCConnectionStatus.js'
 import { AdminLockContext } from './Layout/AdminLockContext.js'
+import { CommandPalette } from './Layout/CommandPalette.js'
 import { ConfigImportingOverlay, ConnectionLostOverlay } from './Layout/ConnectionLostOverlay.js'
 import { MySidebar, SidebarStateProvider, useSidebarState } from './Layout/Sidebar.js'
 import { MyErrorBoundary } from './Resources/Error.js'
@@ -148,6 +149,7 @@ const AppMain = observer(function AppMain({ connected, loadingComplete, loadingP
 						''
 					)}
 					<MySidebar />
+					<CommandPalette />
 					<AppWrapper
 						connected={connected}
 						loadingComplete={loadingComplete}
