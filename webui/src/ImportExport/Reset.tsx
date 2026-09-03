@@ -191,10 +191,7 @@ export const ResetWizardModal = observer(function ResetWizardModal() {
 				<Modal.Viewport>
 					<Modal.Popup initialFocus={buttonRef}>
 						<Modal.Header closeButton>
-							<Modal.Title>
-								<img src={makeAbsolutePath('/img/logo-glass.png')} style={{ height: 30 }} alt="logo" className="me-2" />
-								Reset Configuration
-							</Modal.Title>
+							<Modal.Title>Reset Configuration</Modal.Title>
 						</Modal.Header>
 						{currentStep <= applyStep && (
 							<StepSelector items={stepperItems} currentIndex={currentStep} onJump={doJumpToStep} />

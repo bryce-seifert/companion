@@ -64,11 +64,16 @@ export interface SidebarStateProps {
 const SidebarStateContext = createContext<SidebarStateProps | null>(null)
 const NarrowModeContext = createContext(false) // used locally for labelling: true if in narrow mode
 
+const defaultSidebarState: SidebarStateProps = {
+	mobileMode: false,
+	handleShowSidebar: () => {},
+	showSidebarEvent: new EventTarget(),
+}
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSidebarState(): SidebarStateProps {
 	const props = useContext(SidebarStateContext)
-	if (!props) throw new Error('Not inside a SidebarStateContext!')
-	return props
+	return props ?? defaultSidebarState
 }
 
 export function SidebarStateProvider({ children }: React.PropsWithChildren): React.ReactNode {

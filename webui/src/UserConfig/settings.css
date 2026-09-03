@@ -51,6 +51,15 @@
 	height: 16px;
 }
 
+.settings-category-spacer:first-child {
+	display: none;
+}
+
+.settings-category-spacer:first-child + .settings-category-row th,
+.table-settings tr:first-child.settings-category-row th {
+	border-top: none;
+}
+
 .remote-control-tabs .nav-link {
 	cursor: pointer;
 }

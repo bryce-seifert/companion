@@ -1,4 +1,11 @@
-import { faCheck, faClipboardList, faDownload, faFileExport, faTrash } from '@fortawesome/free-solid-svg-icons'
+import {
+	faCheck,
+	faClipboardList,
+	faDownload,
+	faFileExport,
+	faInfoCircle,
+	faTrash,
+} from '@fortawesome/free-solid-svg-icons'
 import './log.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useQuery } from '@tanstack/react-query'
@@ -246,35 +253,44 @@ interface LogLineInnerProps {
 	line: ClientLogLineExt
 }
 const LogLineInner = memo(({ line }: LogLineInnerProps) => {
-	const time_format = line.time === null ? '' : dayjs(line.time).format('YYYY-MM-DD HH:mm:ss.SSS')
+	if (line.time === null) {
+		return (
+			<div className="flex items-center gap-2 py-1.5 px-3 mb-1 rounded bg-surface-muted/60 border border-border/70 text-xs text-muted font-sans">
+				<FontAwesomeIcon icon={faInfoCircle} className="text-sky-500 shrink-0" />
+				<span className="break-words min-w-0 flex-1">{line.message}</span>
+			</div>
+		)
+	}
+
+	const time_format = dayjs(line.time).format('YYYY-MM-DD HH:mm:ss.SSS')
 
 	let levelBadge = null
 	let lineBgColor = 'bg-transparent'
 
 	if (line.level === 'error' || line.level === 'fatal') {
 		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-rose-500/20 text-rose-500 border border-rose-500/30 shrink-0 select-none">
+			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-rose-500/20 text-rose-500 border border-rose-500/30 shrink-0 select-none">
 				ERROR
 			</span>
 		)
 		lineBgColor = 'bg-rose-500/10 border-rose-500/20'
 	} else if (line.level === 'warn') {
 		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 select-none">
+			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 select-none">
 				WARN
 			</span>
 		)
 		lineBgColor = 'bg-amber-500/10 border-amber-500/20'
 	} else if (line.level === 'info') {
 		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/30 shrink-0 select-none">
+			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/30 shrink-0 select-none">
 				INFO
 			</span>
 		)
 		lineBgColor = 'bg-sky-500/10 border-sky-500/20'
 	} else if (line.level === 'debug') {
 		levelBadge = (
-			<span className="px-1.5 py-0.5 rounded text-3xs font-bold uppercase bg-zinc-500/15 text-zinc-400 border border-zinc-500/20 shrink-0 select-none">
+			<span className="w-12 text-center py-0.5 rounded text-3xs font-bold uppercase bg-zinc-500/15 text-zinc-400 border border-zinc-500/20 shrink-0 select-none">
 				DEBUG
 			</span>
 		)
@@ -284,14 +300,18 @@ const LogLineInner = memo(({ line }: LogLineInnerProps) => {
 	return (
 		<div
 			className={classNames(
-				'flex items-start gap-2 py-1 px-2.5 rounded transition-colors text-xs font-mono border border-transparent my-0.5 leading-relaxed',
+				'flex items-start gap-2.5 py-1 px-2.5 rounded hover:bg-surface-hover/50 transition-colors text-xs font-mono border border-transparent my-0.5 leading-relaxed',
 				lineBgColor
 			)}
 		>
-			{time_format && <span className="text-muted shrink-0 select-none text-2xs">{time_format}</span>}
+			<span className="text-muted shrink-0 select-none text-2xs tabular-nums whitespace-nowrap w-[160px] pt-0.5">
+				{time_format}
+			</span>
 			{levelBadge}
-			<span className="font-semibold text-body shrink-0">{line.source}:</span>
-			<span className="text-body break-words min-w-0 flex-1">{line.message}</span>
+			<span className="font-semibold text-body shrink-0 w-48 truncate select-none" title={line.source}>
+				{line.source}
+			</span>
+			<span className="text-body whitespace-pre-wrap break-words min-w-0 flex-1">{line.message}</span>
 		</div>
 	)
 })

@@ -1,4 +1,5 @@
 import { ContextHelpButton, type ContextHelpButtonProps } from '~/Layout/PanelIcons'
+import '../settings.css'
 
 interface UserConfigHeadingRowProps {
 	label: string

@@ -99,10 +99,7 @@ export const ExportWizardModal = observer(function ExportWizardModal() {
 				<Modal.Viewport>
 					<Modal.Popup initialFocus={buttonRef}>
 						<Modal.Header closeButton>
-							<Modal.Title>
-								<img src={makeAbsolutePath('/img/logo-glass.png')} style={{ height: 30 }} alt="logo" className="me-2" />
-								Export Configuration
-							</Modal.Title>
+							<Modal.Title>Export Configuration</Modal.Title>
 						</Modal.Header>
 						<Form
 							className={'flex-form'}
